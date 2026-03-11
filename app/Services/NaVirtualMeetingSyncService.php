@@ -634,11 +634,12 @@ class NaVirtualMeetingSyncService
         $start = Carbon::createFromFormat('H:i:s', $startTime);
         $end = Carbon::createFromFormat('H:i:s', $endTime);
 
+        // Reunioes que cruzam meia-noite (ex.: 23:00 as 01:00).
         if ($end->lessThanOrEqualTo($start)) {
-            return null;
+            $end->addDay();
         }
 
-        return $end->diffInMinutes($start);
+        return (int) $start->diffInMinutes($end, true);
     }
 
     private function buildExternalId(
