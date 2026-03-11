@@ -55,6 +55,63 @@ Impacto: Médio | Risco: decisões erradas por contexto antigo | Correção: atu
 2. **Cache da homepage**
 - Entregáveis: cache de dataset agrupado por 60–120s + invalidação pós-sync.
 - Critério de aceite: controller serve cache e invalidado ao final do job/sync.
+    Você está no projeto Laravel em `c:\laragon\www\NA_virtual_clone`.
+---
+    Referência obrigatória:
+    - `docs/etapas/revisao-pos-desenvolvimento-v1.md`
+
+    Tarefa (Plano de Ação - item 2):
+    Implementar **Cache da homepage** para reuniões virtuais:
+    1. Cache do dataset agrupado por 60–120 segundos
+    2. Invalidação após sync (command/job/service)
+
+    Contexto técnico atual:
+    - Controller público: `app/Http/Controllers/VirtualMeetingController.php`
+    - Serviço de agrupamento: `app/Services/NaVirtualMeetingGroupingService.php`
+    - Sync: `app/Services/NaVirtualMeetingSyncService.php`
+    - Job: `app/Jobs/SyncNaVirtualMeetingsJob.php`
+    - Rota: `/reunioes-virtuais`
+
+    Objetivo funcional:
+    Evitar recalcular dataset agrupado em toda requisição e reduzir custo/latência da homepage sem perder consistência após sincronização.
+
+    Requisitos de implementação:
+    1. Definir chave de cache explícita e estável (ex.: `na.virtual.homepage`).
+    2. Definir TTL configurável por env (default seguro entre 60 e 120 segundos).
+    3. No fluxo de render da homepage:
+    - usar `Cache::remember(...)` para o resultado de `buildHomePageData()`.
+    4. Após sync bem-sucedido:
+    - invalidar a chave de cache da homepage (`Cache::forget(...)`).
+    - essa invalidação deve ocorrer no ponto central para cobrir execução por command e por job.
+    5. Não alterar regras de grouping nem estrutura da UI nesta tarefa.
+    6. Manter código limpo e fácil de operar.
+
+    Configuração esperada:
+    - Adicionar variáveis no `.env.example` (e usar no `.env` local):
+    - `NA_VIRTUAL_HOMEPAGE_CACHE_KEY=na.virtual.homepage`
+    - `NA_VIRTUAL_HOMEPAGE_CACHE_TTL_SECONDS=120`
+    - Centralizar leitura em config dedicada (preferencialmente `config/na_virtual.php`).
+
+    Testes obrigatórios:
+    1. Teste do controller/homepage:
+    - primeira chamada popula cache
+    - segunda chamada reutiliza cache (não reexecuta cálculo/service)
+    2. Teste de invalidação:
+    - após sync bem-sucedido, cache da homepage é invalidado
+    3. Garantir que testes existentes relevantes continuam passando.
+
+    Critérios de aceite:
+    - Homepage usa cache com TTL configurável.
+    - Invalidação ocorre após sync bem-sucedido.
+    - Sem regressão funcional.
+    - Testes cobrindo cache hit/miss + invalidação.
+
+    Saída final esperada:
+    1. Resumo das mudanças.
+    2. Arquivos alterados.
+    3. Chave/TTL adotados.
+    4. Comandos de teste executados e resultados.
+---
 
 3. **Fallback de último snapshot válido**
 - Entregáveis: migration/model snapshot + gravação por sync + leitura fallback em erro.

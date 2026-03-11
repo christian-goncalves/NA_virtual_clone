@@ -4,12 +4,20 @@ namespace Tests\Feature;
 
 use App\Models\VirtualMeeting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class NaVirtualMeetingSyncCommandTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Cache::flush();
+    }
 
     public function test_command_succeeds_with_valid_fixture_payload(): void
     {
@@ -31,6 +39,25 @@ class NaVirtualMeetingSyncCommandTest extends TestCase
             'meeting_platform' => 'zoom',
             'is_active' => 1,
         ]);
+    }
+
+    public function test_sync_invalidates_homepage_cache_after_success(): void
+    {
+        config()->set('na_virtual.homepage_cache.key', 'na.virtual.homepage.test');
+        Cache::put('na.virtual.homepage.test', ['cached' => true], now()->addMinutes(5));
+
+        Http::fake([
+            'https://www.na.org.br/wp-admin/admin-ajax.php*' => Http::response(
+                $this->buildPayloadFromHtml($this->validMeetingsHtml()),
+                200
+            ),
+        ]);
+
+        $this->artisan('na:sync-virtual-meetings')
+            ->expectsOutputToContain('Sincronização concluída.')
+            ->assertSuccessful();
+
+        $this->assertFalse(Cache::has('na.virtual.homepage.test'));
     }
 
     public function test_command_fails_when_payload_has_no_separator(): void

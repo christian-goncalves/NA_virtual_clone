@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\VirtualMeeting;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -32,6 +33,7 @@ class NaVirtualMeetingSyncService
         }
 
         $result = $this->persist($meetings, $syncedAt);
+        $this->invalidateHomepageCache();
 
         return [
             ...$result,
@@ -810,5 +812,15 @@ class NaVirtualMeetingSyncService
         $value = preg_replace('/\s+/u', ' ', $value) ?? $value;
 
         return trim($value);
+    }
+
+    private function invalidateHomepageCache(): void
+    {
+        $cacheKey = (string) config('na_virtual.homepage_cache.key', 'na.virtual.homepage');
+        Cache::forget($cacheKey);
+
+        Log::info('Cache da homepage de reunioes virtuais invalidado apos sync.', [
+            'cache_key' => $cacheKey,
+        ]);
     }
 }
