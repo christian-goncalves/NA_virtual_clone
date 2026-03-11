@@ -1,0 +1,687 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\VirtualMeeting;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use RuntimeException;
+use Symfony\Component\DomCrawler\Crawler;
+use Throwable;
+
+class NaVirtualMeetingSyncService
+{
+    private const SOURCE_URL = 'https://www.na.org.br/virtual/';
+    private const AJAX_URL = 'https://www.na.org.br/wp-admin/admin-ajax.php';
+
+    /**
+     * Sync meetings from official source into local database.
+     *
+     * @return array<string, int|string>
+     */
+    public function sync(): array
+    {
+        $syncedAt = now();
+        $payload = $this->downloadMeetingsPayload();
+        $meetings = $this->parseMeetings($payload);
+
+        if ($meetings === []) {
+            throw new RuntimeException('Nenhuma reunião válida foi extraída; sincronização abortada para proteger a base local.');
+        }
+
+        $result = $this->persist($meetings, $syncedAt);
+
+        return [
+            ...$result,
+            'source_url' => self::SOURCE_URL,
+        ];
+    }
+
+    private function downloadMeetingsPayload(): string
+    {
+        $response = Http::timeout(20)
+            ->retry(2, 500)
+            ->get(self::AJAX_URL, [
+                'action' => 'get_service_grupos',
+                'estado' => '',
+                'cidade' => '',
+                'bairro' => '',
+                'A' => '1',
+                'B' => '1',
+                'formatos' => '',
+                'periodo' => 'all',
+                'ic_formato' => 'virtual',
+                'weekdays' => 'all',
+            ]);
+
+        if (! $response->successful()) {
+            throw new RuntimeException('Falha ao consultar a origem oficial. Status: '.$response->status());
+        }
+
+        $payload = $response->body();
+
+        if (trim($payload) === '') {
+            throw new RuntimeException('A resposta da origem veio vazia.');
+        }
+
+        return $payload;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function parseMeetings(string $payload): array
+    {
+        [$mapJson, $html] = array_pad(explode('||', $payload, 2), 2, '');
+
+        if (trim($html) === '') {
+            throw new RuntimeException('A origem não retornou o bloco HTML das reuniões.');
+        }
+
+        $locationByGroupName = $this->extractLocationsFromMapJson($mapJson);
+        $crawler = new Crawler('<div id="virtual-meetings-root">'.$html.'</div>');
+
+        $meetings = [];
+        $parseErrors = 0;
+
+        $crawler->filter('table[id^="copy"]')->each(function (Crawler $table) use (&$meetings, &$parseErrors, $locationByGroupName): void {
+            try {
+                $groupName = $this->extractGroupName($table);
+                if ($groupName === null) {
+                    return;
+                }
+
+                $location = $locationByGroupName[Str::lower($groupName)] ?? [
+                    'city' => null,
+                    'state' => null,
+                ];
+                $tableLocation = $this->extractLocationFromTable($table);
+                if ($tableLocation['city'] !== null || $tableLocation['state'] !== null) {
+                    $location = $tableLocation;
+                }
+
+                $table->filter('tr')->each(function (Crawler $row) use (&$meetings, $groupName, $location): void {
+                    $cells = $row->filter('td');
+                    if ($cells->count() < 2) {
+                        return;
+                    }
+
+                    $weekdayRaw = $this->normalizeText($cells->eq(0)->text('', true));
+                    $weekday = $this->normalizeWeekday($weekdayRaw);
+                    if ($weekday === null) {
+                        return;
+                    }
+
+                    $detailsCell = $cells->eq(1);
+                    $detailsText = $this->normalizeText($detailsCell->text('', true));
+                    [$startTime, $endTime] = $this->extractTimeRange($detailsText);
+                    if ($startTime === null) {
+                        return;
+                    }
+
+                    $meetingUrl = $detailsCell->filter('a')->count() > 0
+                        ? $this->normalizeUrl($detailsCell->filter('a')->first()->attr('href'))
+                        : null;
+                    $platform = $this->extractPlatform($detailsText, $meetingUrl, $detailsCell);
+                    $meetingId = $this->extractMeetingId($detailsText);
+                    $meetingPassword = $this->extractMeetingPassword($detailsText);
+                    $formatLabels = $this->extractFormatLabelsFromDetails($detailsText);
+                    $interestLabels = $this->extractInterestLabels($detailsText);
+                    $durationMinutes = $this->durationFromTimes($startTime, $endTime);
+                    $sourceHash = sha1($this->normalizeText(implode('|', [
+                        $groupName,
+                        $weekday,
+                        $startTime,
+                        $endTime ?? '',
+                        $platform ?? '',
+                        $meetingId ?? '',
+                        $meetingUrl ?? '',
+                        $detailsText,
+                    ])));
+                    $externalId = $this->buildExternalId($groupName, $weekday, $startTime, $platform, $meetingId, $sourceHash);
+
+                    $meetings[] = [
+                        'external_id' => $externalId,
+                        'name' => $groupName,
+                        'meeting_platform' => $platform,
+                        'meeting_url' => $meetingUrl,
+                        'meeting_id' => $meetingId,
+                        'meeting_password' => $meetingPassword,
+                        'phone' => $this->extractPhone($detailsText),
+                        'region' => null,
+                        'state' => $location['state'],
+                        'city' => $location['city'],
+                        'neighborhood' => null,
+                        'format_labels' => $formatLabels !== [] ? $formatLabels : null,
+                        'type_label' => $this->extractTypeLabel($detailsText, $formatLabels),
+                        'interest_labels' => $interestLabels !== [] ? $interestLabels : null,
+                        'weekday' => $weekday,
+                        'start_time' => $startTime,
+                        'end_time' => $endTime,
+                        'duration_minutes' => $durationMinutes,
+                        'timezone' => 'America/Sao_Paulo',
+                        'is_open' => $this->containsAny($detailsText, ['aberta', 'aberto', 'visitantes']),
+                        'is_study' => $this->containsAny($detailsText, ['estudo', 'literatura', 'guia de passos', 'texto básico']),
+                        'is_lgbt' => $this->containsAny($detailsText, ['lgbt', 'lgbtq', 'lgbtqia', 'lgbtqiapn']),
+                        'is_women' => $this->containsAny($detailsText, ['mulher', 'mulheres', 'feminino', 'só por elas']),
+                        'is_hybrid' => $this->containsAny($detailsText, ['hibrida', 'híbrida', 'hibrido', 'híbrido']),
+                        'source_url' => self::SOURCE_URL,
+                        'source_hash' => $sourceHash,
+                    ];
+                });
+            } catch (Throwable $e) {
+                $parseErrors++;
+                Log::warning('Falha ao parsear grupo de reunião virtual.', [
+                    'message' => $e->getMessage(),
+                ]);
+            }
+        });
+
+        if ($parseErrors > 0) {
+            Log::warning('Parsing finalizado com falhas parciais.', [
+                'parse_errors' => $parseErrors,
+            ]);
+        }
+
+        return array_values($this->deduplicateByExternalId($meetings));
+    }
+
+    /**
+     * @return array<string, array{city: string|null, state: string|null}>
+     */
+    private function extractLocationsFromMapJson(string $mapJson): array
+    {
+        $mapJson = trim($mapJson);
+        if ($mapJson === '' || ! str_starts_with($mapJson, '{')) {
+            return [];
+        }
+
+        $decoded = json_decode($mapJson, true);
+        if (! is_array($decoded)) {
+            return [];
+        }
+
+        $locations = [];
+
+        foreach ($decoded as $group) {
+            if (! is_array($group) || ! isset($group[0]) || ! is_array($group[0])) {
+                continue;
+            }
+
+            $item = $group[0];
+            $name = $this->cleanGroupName((string) ($item['meeting_name'] ?? ''));
+            if ($name === '') {
+                continue;
+            }
+
+            $address = $this->normalizeText(strip_tags((string) ($item['endereco'] ?? '')));
+            $cityState = $this->extractCityStateFromAddress($address);
+
+            $locations[Str::lower($name)] = [
+                'city' => $cityState['city'],
+                'state' => $cityState['state'],
+            ];
+        }
+
+        return $locations;
+    }
+
+    private function extractGroupName(Crawler $table): ?string
+    {
+        $headerCell = $table->filter('tr')->first()->filter('td')->first();
+        if ($headerCell->count() === 0) {
+            return null;
+        }
+
+        $html = $headerCell->html('');
+        $name = $this->cleanGroupName($html);
+
+        return $name !== '' ? $name : null;
+    }
+
+    /**
+     * @return array{city: string|null, state: string|null}
+     */
+    private function extractLocationFromTable(Crawler $table): array
+    {
+        $locationText = null;
+
+        $table->filter('tr td[colspan="2"]')->each(function (Crawler $cell) use (&$locationText): void {
+            $text = $this->normalizeText(strip_tags($cell->html('')));
+            if (Str::contains($text, '/')) {
+                $locationText = $text;
+            }
+        });
+
+        if ($locationText === null) {
+            return ['city' => null, 'state' => null];
+        }
+
+        if (preg_match('/([^\n\/-]+)\s*\/\s*([^\n-]+)/u', $locationText, $match)) {
+            return [
+                'city' => $this->normalizeText($match[1]) ?: null,
+                'state' => $this->normalizeText($match[2]) ?: null,
+            ];
+        }
+
+        return $this->extractCityStateFromAddress($locationText);
+    }
+
+    /**
+     * @return array{city: string|null, state: string|null}
+     */
+    private function extractCityStateFromAddress(string $address): array
+    {
+        if ($address === '') {
+            return ['city' => null, 'state' => null];
+        }
+
+        $states = [
+            'Acre',
+            'Alagoas',
+            'Amapá',
+            'Amazonas',
+            'Bahia',
+            'Ceará',
+            'Distrito Federal',
+            'Espírito Santo',
+            'Goiás',
+            'Maranhão',
+            'Mato Grosso',
+            'Mato Grosso do Sul',
+            'Minas Gerais',
+            'Pará',
+            'Paraíba',
+            'Paraná',
+            'Pernambuco',
+            'Piauí',
+            'Rio de Janeiro',
+            'Rio Grande do Norte',
+            'Rio Grande do Sul',
+            'Rondônia',
+            'Roraima',
+            'Santa Catarina',
+            'São Paulo',
+            'Sergipe',
+            'Tocantins',
+        ];
+
+        $normalizedAddress = Str::lower(Str::ascii($address));
+
+        foreach ($states as $state) {
+            $normalizedState = Str::lower(Str::ascii($state));
+            if (! Str::contains($normalizedAddress, $normalizedState)) {
+                continue;
+            }
+
+            $city = trim(preg_replace('/\b'.preg_quote($state, '/').'\b.*/iu', '', $address) ?? '');
+            $city = trim(preg_replace('/\b\d{5,}\b/u', '', $city) ?? '');
+            $city = trim(preg_replace('/\s{2,}/u', ' ', $city) ?? $city);
+            $cityParts = preg_split('/\s+/u', $city) ?: [];
+            $city = implode(' ', array_slice($cityParts, -3));
+
+            return [
+                'city' => $city !== '' ? $city : null,
+                'state' => $state,
+            ];
+        }
+
+        return ['city' => null, 'state' => null];
+    }
+
+    /**
+     * @param list<array<string, mixed>> $meetings
+     * @return array<string, int>
+     */
+    private function persist(array $meetings, Carbon $syncedAt): array
+    {
+        $created = 0;
+        $updated = 0;
+        $seenExternalIds = [];
+
+        foreach ($meetings as $meeting) {
+            $externalId = (string) $meeting['external_id'];
+            $seenExternalIds[] = $externalId;
+
+            $model = VirtualMeeting::query()->firstOrNew([
+                'external_id' => $externalId,
+            ]);
+
+            $wasNew = ! $model->exists;
+
+            $model->fill($meeting);
+            $model->is_active = true;
+            $model->synced_at = $syncedAt;
+            $model->last_seen_at = $syncedAt;
+            $model->save();
+
+            if ($wasNew) {
+                $created++;
+            } else {
+                $updated++;
+            }
+        }
+
+        $inactivated = 0;
+
+        if ($seenExternalIds !== []) {
+            $inactivated = VirtualMeeting::query()
+                ->where('is_active', true)
+                ->whereNotIn('external_id', $seenExternalIds)
+                ->update([
+                    'is_active' => false,
+                    'synced_at' => $syncedAt,
+                ]);
+        }
+
+        return [
+            'total_found' => count($meetings),
+            'total_created' => $created,
+            'total_updated' => $updated,
+            'total_inactivated' => $inactivated,
+        ];
+    }
+
+    /**
+     * @param list<array<string, mixed>> $meetings
+     * @return array<string, array<string, mixed>>
+     */
+    private function deduplicateByExternalId(array $meetings): array
+    {
+        $unique = [];
+
+        foreach ($meetings as $meeting) {
+            $externalId = (string) $meeting['external_id'];
+            $unique[$externalId] = $meeting;
+        }
+
+        return $unique;
+    }
+
+    private function cleanGroupName(string $html): string
+    {
+        $name = $this->normalizeText(strip_tags($html));
+        $name = str_replace('Reunião Verificada', '', $name);
+        $name = $this->normalizeText($name);
+
+        return Str::limit($name, 255, '');
+    }
+
+    /**
+     * @return array{0: string|null, 1: string|null}
+     */
+    private function extractTimeRange(string $text): array
+    {
+        preg_match('/\b([01]?\d|2[0-3])[:hH]([0-5]\d)\s*(?:às|as|a)\s*([01]?\d|2[0-3])[:hH]([0-5]\d)\b/iu', $text, $rangeMatch);
+        if ($rangeMatch !== []) {
+            return [
+                sprintf('%02d:%02d:00', (int) $rangeMatch[1], (int) $rangeMatch[2]),
+                sprintf('%02d:%02d:00', (int) $rangeMatch[3], (int) $rangeMatch[4]),
+            ];
+        }
+
+        preg_match_all('/\b([01]?\d|2[0-3])[:hH]([0-5]\d)\b/u', $text, $matches, PREG_SET_ORDER);
+
+        if ($matches === []) {
+            return [null, null];
+        }
+
+        $start = sprintf('%02d:%02d:00', (int) $matches[0][1], (int) $matches[0][2]);
+        $end = isset($matches[1]) ? sprintf('%02d:%02d:00', (int) $matches[1][1], (int) $matches[1][2]) : null;
+
+        return [$start, $end];
+    }
+
+    private function normalizeUrl(?string $url): ?string
+    {
+        if ($url === null) {
+            return null;
+        }
+
+        $url = trim($url);
+        if ($url === '' || ! preg_match('/^https?:\/\//i', $url)) {
+            return null;
+        }
+
+        return Str::limit($url, 65535, '');
+    }
+
+    private function extractMeetingId(string $text): ?string
+    {
+        if (preg_match('/(?:meeting\s*id|id(?:\s*da\s*reuni[aã]o)?|id)\s*[:\-]?\s*([0-9][0-9\s\-]{5,})/iu', $text, $match)) {
+            return preg_replace('/\D+/', '', $match[1]) ?: null;
+        }
+
+        return null;
+    }
+
+    private function extractMeetingPassword(string $text): ?string
+    {
+        if (preg_match('/(?:senha|passcode|password)\s*[:\-]?\s*([a-z0-9@#\-\._]{3,})/iu', $text, $match)) {
+            return Str::limit($match[1], 255, '');
+        }
+
+        return null;
+    }
+
+    private function extractPhone(string $text): ?string
+    {
+        if (preg_match('/(?:\+?55\s*)?(?:\(?\d{2}\)?\s*)?\d{4,5}[-\s]?\d{4}/u', $text, $match)) {
+            return Str::limit($this->normalizeText($match[0]), 255, '');
+        }
+
+        return null;
+    }
+
+    private function extractPlatform(string $text, ?string $meetingUrl, Crawler $detailsCell): ?string
+    {
+        $iconText = '';
+        if ($detailsCell->filter('img[src]')->count() > 0) {
+            $iconText = implode(' ', $detailsCell->filter('img[src]')->each(fn (Crawler $img): string => (string) $img->attr('src')));
+        }
+
+        $combined = Str::lower($text.' '.($meetingUrl ?? '').' '.$iconText);
+
+        return match (true) {
+            Str::contains($combined, 'zoom') => 'zoom',
+            Str::contains($combined, 'zello') => 'zello',
+            Str::contains($combined, 'meet.google') || Str::contains($combined, 'google meet') => 'google-meet',
+            Str::contains($combined, 'microsoft teams') || Str::contains($combined, 'teams.microsoft') => 'teams',
+            Str::contains($combined, 'jitsi') => 'jitsi',
+            Str::contains($combined, 'skype') => 'skype',
+            default => null,
+        };
+    }
+
+    private function normalizeWeekday(string $text): ?string
+    {
+        $weekdayMap = [
+            'dom' => 'domingo',
+            'domingo' => 'domingo',
+            'seg' => 'segunda',
+            'segunda' => 'segunda',
+            'ter' => 'terca',
+            'terca' => 'terca',
+            'terça' => 'terca',
+            'qua' => 'quarta',
+            'quarta' => 'quarta',
+            'qui' => 'quinta',
+            'quinta' => 'quinta',
+            'sex' => 'sexta',
+            'sexta' => 'sexta',
+            'sab' => 'sabado',
+            'sabado' => 'sabado',
+            'sábado' => 'sabado',
+            'sáb' => 'sabado',
+            'domingo' => 'domingo',
+        ];
+
+        $normalized = Str::lower(Str::ascii($this->normalizeText($text)));
+
+        foreach ($weekdayMap as $needle => $weekday) {
+            if (Str::contains($normalized, Str::ascii($needle))) {
+                return $weekday;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function extractFormatLabelsFromDetails(string $text): array
+    {
+        $labels = [];
+
+        if (preg_match('/\(([^)]*)\)/u', $text, $match)) {
+            $parts = preg_split('/\s*,\s*/u', $match[1]) ?: [];
+
+            foreach ($parts as $part) {
+                $label = $this->normalizeText($part);
+                if ($label !== '' && ! $this->containsAny($label, ['reunião virtual', 'reuniao virtual'])) {
+                    $labels[] = Str::limit($label, 255, '');
+                }
+            }
+        }
+
+        $candidates = [
+            'aberta',
+            'fechada',
+            'estudo',
+            'tematica',
+            'temática',
+            'hibrida',
+            'híbrida',
+            'presencial',
+            'online',
+            'virtual',
+        ];
+
+        return array_values(array_unique([
+            ...$labels,
+            ...$this->extractLabelsFromCandidates($text, $candidates),
+        ]));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function extractInterestLabels(string $text): array
+    {
+        $candidates = [
+            'lgbt',
+            'lgbtq',
+            'lgbtqia',
+            'lgbtqiapn+',
+            'mulheres',
+            'feminino',
+            'jovens',
+            'iniciantes',
+        ];
+
+        return $this->extractLabelsFromCandidates($text, $candidates);
+    }
+
+    /**
+     * @param list<string> $candidates
+     * @return list<string>
+     */
+    private function extractLabelsFromCandidates(string $text, array $candidates): array
+    {
+        $normalized = Str::lower(Str::ascii($text));
+        $labels = [];
+
+        foreach ($candidates as $candidate) {
+            $needle = Str::lower(Str::ascii($candidate));
+
+            if (Str::contains($normalized, $needle)) {
+                $labels[] = $candidate;
+            }
+        }
+
+        return array_values(array_unique($labels));
+    }
+
+    /**
+     * @param list<string> $formatLabels
+     */
+    private function extractTypeLabel(string $text, array $formatLabels): ?string
+    {
+        if ($this->containsAny($text, ['aberta', 'aberto'])) {
+            return 'aberta';
+        }
+
+        if ($this->containsAny($text, ['fechada', 'fechado'])) {
+            return 'fechada';
+        }
+
+        if (in_array('estudo', $formatLabels, true)) {
+            return 'estudo';
+        }
+
+        return null;
+    }
+
+    private function durationFromTimes(string $startTime, ?string $endTime): ?int
+    {
+        if ($endTime === null) {
+            return null;
+        }
+
+        $start = Carbon::createFromFormat('H:i:s', $startTime);
+        $end = Carbon::createFromFormat('H:i:s', $endTime);
+
+        if ($end->lessThanOrEqualTo($start)) {
+            return null;
+        }
+
+        return $end->diffInMinutes($start);
+    }
+
+    private function buildExternalId(
+        string $name,
+        string $weekday,
+        string $startTime,
+        ?string $platform,
+        ?string $meetingId,
+        string $sourceHash
+    ): string {
+        $parts = [
+            Str::lower(trim($name)),
+            $weekday,
+            $startTime,
+            $platform ?? '',
+            $meetingId ?? '',
+        ];
+
+        $normalized = $this->normalizeText(implode('|', $parts));
+
+        return sha1($normalized !== '' ? $normalized : $sourceHash);
+    }
+
+    /**
+     * @param list<string> $needles
+     */
+    private function containsAny(string $text, array $needles): bool
+    {
+        $haystack = Str::lower(Str::ascii($text));
+
+        foreach ($needles as $needle) {
+            if (Str::contains($haystack, Str::lower(Str::ascii($needle)))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function normalizeText(string $value): string
+    {
+        $value = preg_replace('/\s+/u', ' ', $value) ?? $value;
+
+        return trim($value);
+    }
+}
