@@ -420,6 +420,9 @@ class NaVirtualMeetingSyncService
      */
     private function persist(array $meetings, Carbon $syncedAt): array
     {
+        $activeBeforeCount = VirtualMeeting::query()
+            ->where('is_active', true)
+            ->count();
         $created = 0;
         $updated = 0;
         $seenExternalIds = [];
@@ -449,14 +452,27 @@ class NaVirtualMeetingSyncService
 
         $inactivated = 0;
 
-        if ($seenExternalIds !== []) {
-            $inactivated = VirtualMeeting::query()
-                ->where('is_active', true)
-                ->whereNotIn('external_id', $seenExternalIds)
-                ->update([
-                    'is_active' => false,
-                    'synced_at' => $syncedAt,
-                ]);
+        if ($seenExternalIds !== [] && $activeBeforeCount > 0) {
+            $guardDecision = $this->evaluateInactivationGuard($activeBeforeCount, count($meetings));
+
+            Log::info('Avaliacao de guard rail para inativacao de reunioes virtuais.', [
+                'active_before_count' => $activeBeforeCount,
+                'total_found' => count($meetings),
+                'drop_percentage' => $guardDecision['drop_percentage'],
+                'min_found_for_inactivation' => $guardDecision['min_found_for_inactivation'],
+                'min_ratio_for_inactivation' => $guardDecision['min_ratio_for_inactivation'],
+                'decision' => $guardDecision['allow_inactivation'] ? 'inactivation_allowed' : 'inactivation_blocked',
+            ]);
+
+            if ($guardDecision['allow_inactivation']) {
+                $inactivated = VirtualMeeting::query()
+                    ->where('is_active', true)
+                    ->whereNotIn('external_id', $seenExternalIds)
+                    ->update([
+                        'is_active' => false,
+                        'synced_at' => $syncedAt,
+                    ]);
+            }
         }
 
         return [
@@ -464,6 +480,29 @@ class NaVirtualMeetingSyncService
             'total_created' => $created,
             'total_updated' => $updated,
             'total_inactivated' => $inactivated,
+            'active_before_count' => $activeBeforeCount,
+        ];
+    }
+
+    /**
+     * @return array{allow_inactivation: bool, drop_percentage: float, min_found_for_inactivation: int, min_ratio_for_inactivation: float}
+     */
+    private function evaluateInactivationGuard(int $activeBeforeCount, int $totalFound): array
+    {
+        $minFoundForInactivation = max(1, (int) config('na_virtual.sync_guard.min_found_for_inactivation', 5));
+        $minRatioForInactivation = (float) config('na_virtual.sync_guard.min_ratio_for_inactivation', 0.20);
+        $minRatioForInactivation = max(0.0, min(1.0, $minRatioForInactivation));
+        $foundRatio = $activeBeforeCount > 0 ? ($totalFound / $activeBeforeCount) : 1.0;
+        $dropPercentage = round(max(0, (1 - $foundRatio) * 100), 2);
+
+        $allowInactivation = $totalFound >= $minFoundForInactivation
+            && $foundRatio >= $minRatioForInactivation;
+
+        return [
+            'allow_inactivation' => $allowInactivation,
+            'drop_percentage' => $dropPercentage,
+            'min_found_for_inactivation' => $minFoundForInactivation,
+            'min_ratio_for_inactivation' => $minRatioForInactivation,
         ];
     }
 

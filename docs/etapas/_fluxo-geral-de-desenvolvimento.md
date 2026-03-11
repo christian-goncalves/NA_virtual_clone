@@ -129,7 +129,7 @@ Depois você cria um **job automático** que atualiza as reuniões.
 Scheduler:
 
 ```
-a cada 5 minutos
+a cada 30 minutos
 ```
 
 Fluxo:

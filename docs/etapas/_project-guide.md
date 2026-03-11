@@ -439,6 +439,66 @@ app/
 - service de sync
 - parser
 - command manual para testar coleta
+- PROMPT
+    [
+        ```
+        Você está no projeto Laravel em `c:\laragon\www\NA_virtual_clone`.
+
+        Referência obrigatória:
+        - `docs/etapas/revisao-pos-desenvolvimento-v1.md`
+
+        Tarefa (Plano de Ação - item 1):
+        Implementar **Blindagem operacional mínima** no pipeline de sync:
+        1. Guard rail de inativação em queda anômala de volume
+        2. Logs de decisão operacionais
+        3. Testes automatizados cobrindo o comportamento
+
+        Contexto técnico atual:
+        - Sync principal em `app/Services/NaVirtualMeetingSyncService.php`
+        - Comando em `app/Console/Commands/SyncNaVirtualMeetingsCommand.php`
+        - Testes em `tests/Feature/NaVirtualMeetingSyncCommandTest.php`
+        - Hoje já existe comportamento documentado de inativação massiva em queda brusca (precisa ser corrigido)
+
+        Objetivo funcional:
+        Evitar que uma execução com volume anormalmente baixo inative grande parte da base ativa por erro transitório da origem.
+
+        Requisitos de implementação:
+        1. Definir regra de guard rail antes da etapa de inativação:
+        - comparar `total_found` da rodada atual com total ativo anterior
+        - se queda for brusca (threshold percentual e/ou absoluto), **bloquear inativação**
+        - manter criação/atualização dos registros encontrados na rodada
+        2. Tornar threshold configurável por `.env` (com defaults seguros), por exemplo:
+        - `% mínimo permitido da base anterior`
+        - `mínimo absoluto encontrado para permitir inativação`
+        3. Adicionar logs estruturados com contexto:
+        - total ativo anterior
+        - total encontrado
+        - percentual de queda
+        - decisão tomada (`inativação permitida` / `inativação bloqueada`)
+        4. Não alterar UI, grouping ou rotas nesta tarefa.
+        5. Manter idempotência e comportamento atual de sync para casos normais.
+
+        Testes obrigatórios:
+        1. Ajustar/criar teste que valide:
+        - em queda brusca, inativação é bloqueada
+        - registros ativos antigos permanecem ativos
+        2. Teste que valide:
+        - em cenário normal (sem queda anômala), inativação funciona normalmente
+        3. Garantir que suíte existente relevante continua passando.
+
+        Critérios de aceite:
+        - Guard rail ativo e configurável por env.
+        - Inativação massiva indevida não ocorre em queda brusca.
+        - Logs de decisão disponíveis com dados objetivos.
+        - Testes cobrindo caminho protegido e caminho normal.
+
+        Saída final esperada:
+        1. Resumo das mudanças.
+        2. Arquivos alterados.
+        3. Regras de guard rail implementadas (com thresholds).
+        4. Comandos de teste executados e resultados.
+        ```
+    ]
 
 ### Etapa 3 — Agrupamento
 - service para separar em andamento / breve / próximas

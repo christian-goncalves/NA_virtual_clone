@@ -96,7 +96,7 @@ class NaVirtualMeetingSyncCommandTest extends TestCase
         $this->assertSame(3, VirtualMeeting::query()->where('is_active', true)->count());
     }
 
-    public function test_abrupt_volume_drop_currently_inactivates_many_records(): void
+    public function test_abrupt_volume_drop_blocks_inactivation_with_guard_rail(): void
     {
         $this->seedActiveMeetings(10);
 
@@ -111,9 +111,30 @@ class NaVirtualMeetingSyncCommandTest extends TestCase
             ->expectsOutputToContain('Sincronização concluída.')
             ->assertSuccessful();
 
-        // Este teste documenta o comportamento atual e evidencia a necessidade de guard rail.
+        // Guard rail deve proteger contra inativação massiva em queda abrupta.
+        $this->assertSame(0, VirtualMeeting::query()->where('is_active', false)->count());
+        $this->assertSame(11, VirtualMeeting::query()->where('is_active', true)->count());
+    }
+
+    public function test_normal_volume_allows_inactivation_when_guard_rail_thresholds_are_met(): void
+    {
+        $this->seedActiveMeetings(10);
+        config()->set('na_virtual.sync_guard.min_found_for_inactivation', 5);
+        config()->set('na_virtual.sync_guard.min_ratio_for_inactivation', 0.20);
+
+        Http::fake([
+            'https://www.na.org.br/wp-admin/admin-ajax.php*' => Http::response(
+                $this->buildPayloadFromHtml($this->sixMeetingsHtml()),
+                200
+            ),
+        ]);
+
+        $this->artisan('na:sync-virtual-meetings')
+            ->expectsOutputToContain('Sincronização concluída.')
+            ->assertSuccessful();
+
         $this->assertSame(10, VirtualMeeting::query()->where('is_active', false)->count());
-        $this->assertSame(1, VirtualMeeting::query()->where('is_active', true)->count());
+        $this->assertSame(6, VirtualMeeting::query()->where('is_active', true)->count());
     }
 
     public function test_parses_all_usl_weekly_entries_with_correct_schedule_and_credentials(): void
@@ -352,6 +373,41 @@ HTML;
   </tr>
   <tr>
     <td colspan="2">São Paulo / São Paulo</td>
+  </tr>
+</table>
+HTML;
+    }
+
+    private function sixMeetingsHtml(): string
+    {
+        return <<<'HTML'
+<table id="copy0">
+  <tr>
+    <td colspan="2" align="center">Grupo Volume Normal</td>
+  </tr>
+  <tr>
+    <td>Dom</td>
+    <td><a href="https://us06web.zoom.us/j/10000000001">08:00 às 09:00 ( Reunião Virtual )</a><br>ID: 100 0000 0001 | Senha: 123123<br></td>
+  </tr>
+  <tr>
+    <td>Seg</td>
+    <td><a href="https://us06web.zoom.us/j/10000000002">08:00 às 09:00 ( Reunião Virtual )</a><br>ID: 100 0000 0002 | Senha: 123123<br></td>
+  </tr>
+  <tr>
+    <td>Ter</td>
+    <td><a href="https://us06web.zoom.us/j/10000000003">08:00 às 09:00 ( Reunião Virtual )</a><br>ID: 100 0000 0003 | Senha: 123123<br></td>
+  </tr>
+  <tr>
+    <td>Qua</td>
+    <td><a href="https://us06web.zoom.us/j/10000000004">08:00 às 09:00 ( Reunião Virtual )</a><br>ID: 100 0000 0004 | Senha: 123123<br></td>
+  </tr>
+  <tr>
+    <td>Qui</td>
+    <td><a href="https://us06web.zoom.us/j/10000000005">08:00 às 09:00 ( Reunião Virtual )</a><br>ID: 100 0000 0005 | Senha: 123123<br></td>
+  </tr>
+  <tr>
+    <td>Sex</td>
+    <td><a href="https://us06web.zoom.us/j/10000000006">08:00 às 09:00 ( Reunião Virtual )</a><br>ID: 100 0000 0006 | Senha: 123123<br></td>
   </tr>
 </table>
 HTML;
