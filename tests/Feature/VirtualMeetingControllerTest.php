@@ -40,4 +40,32 @@ class VirtualMeetingControllerTest extends TestCase
             ->assertViewHas('upcomingCount', 3)
             ->assertSee('Reunioes Virtuais');
     }
+
+    public function test_index_displays_all_three_main_sections(): void
+    {
+        $serverTime = Carbon::create(2026, 3, 11, 10, 0, 0, 'America/Sao_Paulo');
+
+        $this->mock(NaVirtualMeetingGroupingService::class, function ($mock) use ($serverTime): void {
+            $mock->shouldReceive('buildHomePageData')
+                ->once()
+                ->andReturn([
+                    'serverTime' => $serverTime,
+                    'runningCount' => 0,
+                    'startingSoonCount' => 0,
+                    'upcomingCount' => 0,
+                    'runningMeetings' => new Collection(),
+                    'startingSoonMeetings' => new Collection(),
+                    'upcomingMeetings' => new Collection(),
+                    'groupedBadges' => [],
+                ]);
+        });
+
+        $response = $this->get('/reunioes-virtuais');
+
+        $response
+            ->assertOk()
+            ->assertSeeText('Reuniões em andamento')
+            ->assertSeeText('Iniciando em breve')
+            ->assertSeeText('Próximas reuniões');
+    }
 }

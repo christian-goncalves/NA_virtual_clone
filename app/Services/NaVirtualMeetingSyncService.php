@@ -115,61 +115,75 @@ class NaVirtualMeetingSyncService
                     }
 
                     $detailsCell = $cells->eq(1);
-                    $detailsText = $this->normalizeText($detailsCell->text('', true));
-                    [$startTime, $endTime] = $this->extractTimeRange($detailsText);
-                    if ($startTime === null) {
-                        return;
+                    $entries = $this->extractMeetingEntriesFromDetailsCell($detailsCell);
+
+                    foreach ($entries as $entry) {
+                        $detailsText = $entry['details_text'];
+                        $startTime = $entry['start_time'];
+                        $endTime = $entry['end_time'];
+
+                        if ($startTime === null) {
+                            continue;
+                        }
+
+                        $meetingUrl = $entry['meeting_url'];
+                        $platform = $this->extractPlatform($detailsText, $meetingUrl, $detailsCell);
+                        $meetingId = $entry['meeting_id'];
+                        $meetingPassword = $entry['meeting_password'];
+                        $formatLabels = $this->extractFormatLabelsFromDetails($detailsText);
+                        $interestLabels = $this->extractInterestLabels($detailsText);
+                        $durationMinutes = $this->durationFromTimes($startTime, $endTime);
+                        $sourceHash = sha1($this->normalizeText(implode('|', [
+                            $groupName,
+                            $weekday,
+                            $startTime,
+                            $endTime ?? '',
+                            $platform ?? '',
+                            $meetingId ?? '',
+                            $meetingPassword ?? '',
+                            $meetingUrl ?? '',
+                            $detailsText,
+                        ])));
+                        $externalId = $this->buildExternalId(
+                            $groupName,
+                            $weekday,
+                            $startTime,
+                            $endTime,
+                            $platform,
+                            $meetingId,
+                            $meetingUrl,
+                            $sourceHash
+                        );
+
+                        $meetings[] = [
+                            'external_id' => $externalId,
+                            'name' => $groupName,
+                            'meeting_platform' => $platform,
+                            'meeting_url' => $meetingUrl,
+                            'meeting_id' => $meetingId,
+                            'meeting_password' => $meetingPassword,
+                            'phone' => $this->extractPhone($detailsText),
+                            'region' => null,
+                            'state' => $location['state'],
+                            'city' => $location['city'],
+                            'neighborhood' => null,
+                            'format_labels' => $formatLabels !== [] ? $formatLabels : null,
+                            'type_label' => $this->extractTypeLabel($detailsText, $formatLabels),
+                            'interest_labels' => $interestLabels !== [] ? $interestLabels : null,
+                            'weekday' => $weekday,
+                            'start_time' => $startTime,
+                            'end_time' => $endTime,
+                            'duration_minutes' => $durationMinutes,
+                            'timezone' => 'America/Sao_Paulo',
+                            'is_open' => $this->containsAny($detailsText, ['aberta', 'aberto', 'visitantes']),
+                            'is_study' => $this->containsAny($detailsText, ['estudo', 'literatura', 'guia de passos', 'texto básico']),
+                            'is_lgbt' => $this->containsAny($detailsText, ['lgbt', 'lgbtq', 'lgbtqia', 'lgbtqiapn']),
+                            'is_women' => $this->containsAny($detailsText, ['mulher', 'mulheres', 'feminino', 'só por elas']),
+                            'is_hybrid' => $this->containsAny($detailsText, ['hibrida', 'híbrida', 'hibrido', 'híbrido']),
+                            'source_url' => self::SOURCE_URL,
+                            'source_hash' => $sourceHash,
+                        ];
                     }
-
-                    $meetingUrl = $detailsCell->filter('a')->count() > 0
-                        ? $this->normalizeUrl($detailsCell->filter('a')->first()->attr('href'))
-                        : null;
-                    $platform = $this->extractPlatform($detailsText, $meetingUrl, $detailsCell);
-                    $meetingId = $this->extractMeetingId($detailsText);
-                    $meetingPassword = $this->extractMeetingPassword($detailsText);
-                    $formatLabels = $this->extractFormatLabelsFromDetails($detailsText);
-                    $interestLabels = $this->extractInterestLabels($detailsText);
-                    $durationMinutes = $this->durationFromTimes($startTime, $endTime);
-                    $sourceHash = sha1($this->normalizeText(implode('|', [
-                        $groupName,
-                        $weekday,
-                        $startTime,
-                        $endTime ?? '',
-                        $platform ?? '',
-                        $meetingId ?? '',
-                        $meetingUrl ?? '',
-                        $detailsText,
-                    ])));
-                    $externalId = $this->buildExternalId($groupName, $weekday, $startTime, $platform, $meetingId, $sourceHash);
-
-                    $meetings[] = [
-                        'external_id' => $externalId,
-                        'name' => $groupName,
-                        'meeting_platform' => $platform,
-                        'meeting_url' => $meetingUrl,
-                        'meeting_id' => $meetingId,
-                        'meeting_password' => $meetingPassword,
-                        'phone' => $this->extractPhone($detailsText),
-                        'region' => null,
-                        'state' => $location['state'],
-                        'city' => $location['city'],
-                        'neighborhood' => null,
-                        'format_labels' => $formatLabels !== [] ? $formatLabels : null,
-                        'type_label' => $this->extractTypeLabel($detailsText, $formatLabels),
-                        'interest_labels' => $interestLabels !== [] ? $interestLabels : null,
-                        'weekday' => $weekday,
-                        'start_time' => $startTime,
-                        'end_time' => $endTime,
-                        'duration_minutes' => $durationMinutes,
-                        'timezone' => 'America/Sao_Paulo',
-                        'is_open' => $this->containsAny($detailsText, ['aberta', 'aberto', 'visitantes']),
-                        'is_study' => $this->containsAny($detailsText, ['estudo', 'literatura', 'guia de passos', 'texto básico']),
-                        'is_lgbt' => $this->containsAny($detailsText, ['lgbt', 'lgbtq', 'lgbtqia', 'lgbtqiapn']),
-                        'is_women' => $this->containsAny($detailsText, ['mulher', 'mulheres', 'feminino', 'só por elas']),
-                        'is_hybrid' => $this->containsAny($detailsText, ['hibrida', 'híbrida', 'hibrido', 'híbrido']),
-                        'source_url' => self::SOURCE_URL,
-                        'source_hash' => $sourceHash,
-                    ];
                 });
             } catch (Throwable $e) {
                 $parseErrors++;
@@ -186,6 +200,75 @@ class NaVirtualMeetingSyncService
         }
 
         return array_values($this->deduplicateByExternalId($meetings));
+    }
+
+    /**
+     * @return list<array{details_text: string, meeting_url: string|null, meeting_id: string|null, meeting_password: string|null, start_time: string|null, end_time: string|null}>
+     */
+    private function extractMeetingEntriesFromDetailsCell(Crawler $detailsCell): array
+    {
+        $entries = [];
+        $anchorCount = $detailsCell->filter('a')->count();
+
+        if ($anchorCount === 0) {
+            $detailsText = $this->normalizeText($detailsCell->text('', true));
+            [$startTime, $endTime] = $this->extractTimeRange($detailsText);
+
+            return [[
+                'details_text' => $detailsText,
+                'meeting_url' => null,
+                'meeting_id' => $this->extractMeetingId($detailsText),
+                'meeting_password' => $this->extractMeetingPassword($detailsText),
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+            ]];
+        }
+
+        $anchors = $detailsCell->filter('a')->each(fn (Crawler $anchor): Crawler => $anchor);
+
+        foreach ($anchors as $index => $anchor) {
+            $anchorText = $this->normalizeText($anchor->text('', true));
+            $meetingUrl = $this->normalizeUrl($anchor->attr('href'));
+            $afterText = $this->extractTextBetweenAnchors($detailsCell, $index);
+            $combinedText = $this->normalizeText(trim($anchorText.' '.$afterText));
+            [$startTime, $endTime] = $this->extractTimeRange($anchorText);
+
+            $entries[] = [
+                'details_text' => $combinedText,
+                'meeting_url' => $meetingUrl,
+                'meeting_id' => $this->extractMeetingId($afterText ?: $combinedText),
+                'meeting_password' => $this->extractMeetingPassword($afterText ?: $combinedText),
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+            ];
+        }
+
+        return $entries;
+    }
+
+    private function extractTextBetweenAnchors(Crawler $detailsCell, int $anchorIndex): string
+    {
+        $html = $detailsCell->html('');
+        if ($html === '') {
+            return '';
+        }
+
+        preg_match_all('/<a\b[^>]*>.*?<\/a>/is', $html, $matches, PREG_OFFSET_CAPTURE);
+        $anchors = $matches[0] ?? [];
+
+        if (! isset($anchors[$anchorIndex])) {
+            return '';
+        }
+
+        $startOffset = $anchors[$anchorIndex][1] + strlen($anchors[$anchorIndex][0]);
+        $endOffset = isset($anchors[$anchorIndex + 1]) ? $anchors[$anchorIndex + 1][1] : strlen($html);
+        $segment = substr($html, $startOffset, max(0, $endOffset - $startOffset));
+
+        if ($segment === false) {
+            return '';
+        }
+
+        return $this->normalizeText(strip_tags(str_replace('<br>', ' ', str_ireplace('<br/>', ' ', str_ireplace('<br />', ' ', $segment)))));
     }
 
     /**
@@ -646,16 +729,20 @@ class NaVirtualMeetingSyncService
         string $name,
         string $weekday,
         string $startTime,
+        ?string $endTime,
         ?string $platform,
         ?string $meetingId,
+        ?string $meetingUrl,
         string $sourceHash
     ): string {
         $parts = [
             Str::lower(trim($name)),
             $weekday,
             $startTime,
+            $endTime ?? '',
             $platform ?? '',
             $meetingId ?? '',
+            $meetingUrl ?? '',
         ];
 
         $normalized = $this->normalizeText(implode('|', $parts));

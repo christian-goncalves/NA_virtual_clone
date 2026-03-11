@@ -116,6 +116,64 @@ class NaVirtualMeetingSyncCommandTest extends TestCase
         $this->assertSame(1, VirtualMeeting::query()->where('is_active', true)->count());
     }
 
+    public function test_parses_all_usl_weekly_entries_with_correct_schedule_and_credentials(): void
+    {
+        Http::fake([
+            'https://www.na.org.br/wp-admin/admin-ajax.php*' => Http::response(
+                $this->buildPayloadFromHtml($this->uslGroupHtml()),
+                200
+            ),
+        ]);
+
+        $this->artisan('na:sync-virtual-meetings')
+            ->expectsOutputToContain('Sincronização concluída.')
+            ->assertSuccessful();
+
+        $query = VirtualMeeting::query()->where('name', 'Grupo USL');
+
+        $this->assertSame(25, $query->count());
+
+        $expected = [
+            ['domingo', '10:00:00', '12:00:00'],
+            ['domingo', '18:00:00', '20:00:00'],
+            ['domingo', '21:30:00', '23:30:00'],
+            ['segunda', '07:00:00', '09:00:00'],
+            ['segunda', '10:00:00', '12:00:00'],
+            ['segunda', '15:00:00', '17:00:00'],
+            ['segunda', '21:30:00', '23:30:00'],
+            ['terca', '10:00:00', '12:00:00'],
+            ['terca', '15:00:00', '17:00:00'],
+            ['terca', '21:30:00', '23:30:00'],
+            ['quarta', '07:00:00', '09:00:00'],
+            ['quarta', '10:00:00', '12:00:00'],
+            ['quarta', '15:00:00', '17:00:00'],
+            ['quarta', '21:30:00', '23:30:00'],
+            ['quinta', '07:00:00', '09:00:00'],
+            ['quinta', '10:00:00', '12:00:00'],
+            ['quinta', '15:00:00', '17:00:00'],
+            ['quinta', '21:30:00', '23:30:00'],
+            ['sexta', '10:00:00', '12:00:00'],
+            ['sexta', '15:00:00', '17:00:00'],
+            ['sexta', '21:30:00', '23:30:00'],
+            ['sabado', '07:00:00', '09:00:00'],
+            ['sabado', '10:00:00', '12:00:00'],
+            ['sabado', '15:00:00', '17:00:00'],
+            ['sabado', '21:30:00', '23:30:00'],
+        ];
+
+        foreach ($expected as [$weekday, $start, $end]) {
+            $this->assertDatabaseHas('virtual_meetings', [
+                'name' => 'Grupo USL',
+                'weekday' => $weekday,
+                'start_time' => $start,
+                'end_time' => $end,
+                'meeting_id' => '2203202053',
+                'meeting_password' => '000000',
+                'meeting_url' => 'https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1',
+            ]);
+        }
+    }
+
     private function buildPayloadFromHtml(string $html): string
     {
         $mapJson = <<<'JSON'
@@ -195,6 +253,105 @@ HTML;
   </tr>
   <tr>
     <td colspan="2">Belo Horizonte / Minas Gerais</td>
+  </tr>
+</table>
+HTML;
+    }
+
+    private function uslGroupHtml(): string
+    {
+        return <<<'HTML'
+<table id="copy24">
+  <tr>
+    <td colspan="2" align="center">Grupo USL</td>
+  </tr>
+  <tr>
+    <td>Dom</td>
+    <td>
+      <a href="https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1">10:00 às 12:00 ( Reunião Virtual)</a><br>
+      ID: 220 320 2053 | Senha: 000000<br>
+      <a href="https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1">18:00 às 20:00 ( Aberta para visitantes, Reunião Virtual)</a><br>
+      ID: 220 320 2053 | Senha: 000000<br>
+      <a href="https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1">21:30 às 23:30 ( Reunião Virtual)</a><br>
+      ID: 220 320 2053 | Senha: 000000<br>
+    </td>
+  </tr>
+  <tr>
+    <td>Seg</td>
+    <td>
+      <a href="https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1">07:00 às 09:00 ( Reunião Virtual)</a><br>
+      ID: 220 320 2053 | Senha: 000000<br>
+      <a href="https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1">10:00 às 12:00 ( Reunião Virtual)</a><br>
+      ID: 220 320 2053 | Senha: 000000<br>
+      <a href="https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1">15:00 às 17:00 ( Reunião Virtual)</a><br>
+      ID: 220 320 2053 | Senha: 000000<br>
+      <a href="https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1">21:30 às 23:30 ( Reunião Virtual)</a><br>
+      ID: 220 320 2053 | Senha: 000000<br>
+    </td>
+  </tr>
+  <tr>
+    <td>Ter</td>
+    <td>
+      <a href="https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1">10:00 às 12:00 ( Reunião Virtual)</a><br>
+      ID: 220 320 2053 | Senha: 000000<br>
+      <a href="https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1">15:00 às 17:00 ( Reunião Virtual)</a><br>
+      ID: 220 320 2053 | Senha: 000000<br>
+      <a href="https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1">21:30 às 23:30 ( Estudo de Literatura, Reunião Virtual)</a><br>
+      ID: 220 320 2053 | Senha: 000000<br>
+    </td>
+  </tr>
+  <tr>
+    <td>Qua</td>
+    <td>
+      <a href="https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1">07:00 às 09:00 ( Reunião Virtual)</a><br>
+      ID: 220 320 2053 | Senha: 000000<br>
+      <a href="https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1">10:00 às 12:00 ( Reunião Virtual)</a><br>
+      ID: 220 320 2053 | Senha: 000000<br>
+      <a href="https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1">15:00 às 17:00 ( Reunião Virtual)</a><br>
+      ID: 220 320 2053 | Senha: 000000<br>
+      <a href="https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1">21:30 às 23:30 ( Estudo de Passos, Reunião Virtual)</a><br>
+      ID: 220 320 2053 | Senha: 000000<br>
+    </td>
+  </tr>
+  <tr>
+    <td>Qui</td>
+    <td>
+      <a href="https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1">07:00 às 09:00 ( Reunião Virtual)</a><br>
+      ID: 220 320 2053 | Senha: 000000<br>
+      <a href="https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1">10:00 às 12:00 ( Reunião Virtual)</a><br>
+      ID: 220 320 2053 | Senha: 000000<br>
+      <a href="https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1">15:00 às 17:00 ( Reunião Virtual)</a><br>
+      ID: 220 320 2053 | Senha: 000000<br>
+      <a href="https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1">21:30 às 23:30 ( Reunião Virtual)</a><br>
+      ID: 220 320 2053 | Senha: 000000<br>
+    </td>
+  </tr>
+  <tr>
+    <td>Sex</td>
+    <td>
+      <a href="https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1">10:00 às 12:00 ( Reunião Virtual)</a><br>
+      ID: 220 320 2053 | Senha: 000000<br>
+      <a href="https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1">15:00 às 17:00 ( Reunião Virtual)</a><br>
+      ID: 220 320 2053 | Senha: 000000<br>
+      <a href="https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1">21:30 às 23:30 ( Temática, Reunião Virtual)</a><br>
+      ID: 220 320 2053 | Senha: 000000<br>
+    </td>
+  </tr>
+  <tr>
+    <td>Sáb</td>
+    <td>
+      <a href="https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1">07:00 às 09:00 ( Reunião Virtual)</a><br>
+      ID: 220 320 2053 | Senha: 000000<br>
+      <a href="https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1">10:00 às 12:00 ( Reunião Virtual)</a><br>
+      ID: 220 320 2053 | Senha: 000000<br>
+      <a href="https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1">15:00 às 17:00 ( Reunião Virtual)</a><br>
+      ID: 220 320 2053 | Senha: 000000<br>
+      <a href="https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1">21:30 às 23:30 ( Reunião Virtual)</a><br>
+      ID: 220 320 2053 | Senha: 000000<br>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2">São Paulo / São Paulo</td>
   </tr>
 </table>
 HTML;
