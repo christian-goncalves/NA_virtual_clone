@@ -4,7 +4,7 @@
 - Etapa 1: concluída
 - Etapa 2: concluída
 - Etapa 3: concluída
-- Etapa 4: pendente
+- Etapa 4: concluída
 - Etapa 5: pendente
 - Etapa 6: pendente (opcional)
 
@@ -56,11 +56,17 @@
 ---
 
 ## Etapa 4 - Controller público
-**Status:** pendente
+**Status:** concluída
 
 **Planejado**
 - Criar `VirtualMeetingController`
 - Integrar `NaVirtualMeetingGroupingService`
+
+**Entregue**
+- `app/Http/Controllers/VirtualMeetingController.php`
+- Rota pública `GET /reunioes-virtuais` em `routes/web.php`
+- View inicial `resources/views/virtual-meetings/index.blade.php`
+- Teste de integração `tests/Feature/VirtualMeetingControllerTest.php`
 
 ---
 
@@ -85,4 +91,3 @@
 ## Testes automatizados já criados
 - `tests/Feature/NaVirtualMeetingSyncCommandTest.php`
 - `tests/Feature/NaVirtualMeetingGroupingServiceTest.php`
-
