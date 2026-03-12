@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\VirtualMeetingSnapshot;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class NaVirtualMeetingSnapshotService
 {
@@ -15,6 +17,14 @@ class NaVirtualMeetingSnapshotService
      */
     public function saveHomepageSnapshot(array $homePageData, ?Carbon $capturedAt = null): void
     {
+        if (! $this->snapshotTableExists()) {
+            Log::warning('Tabela de snapshots nao encontrada; persistencia de snapshot ignorada.', [
+                'table' => 'virtual_meeting_snapshots',
+            ]);
+
+            return;
+        }
+
         $capturedAt = ($capturedAt ?? now())->copy();
         $context = (string) config('na_virtual.snapshot.context_homepage', 'na.virtual.homepage');
         $payload = $this->serializeHomePageData($homePageData);
@@ -46,6 +56,10 @@ class NaVirtualMeetingSnapshotService
      */
     public function getLatestHomepageSnapshotData(): ?array
     {
+        if (! $this->snapshotTableExists()) {
+            return null;
+        }
+
         $context = (string) config('na_virtual.snapshot.context_homepage', 'na.virtual.homepage');
 
         $snapshot = VirtualMeetingSnapshot::query()
@@ -76,6 +90,11 @@ class NaVirtualMeetingSnapshotService
                 ->whereIn('id', $staleIds)
                 ->delete();
         }
+    }
+
+    private function snapshotTableExists(): bool
+    {
+        return Schema::hasTable('virtual_meeting_snapshots');
     }
 
     /**
