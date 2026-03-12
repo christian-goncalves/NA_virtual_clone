@@ -20,6 +20,7 @@ class NaVirtualMeetingSyncService
     public function __construct(
         private readonly NaVirtualMeetingGroupingService $groupingService,
         private readonly NaVirtualMeetingSnapshotService $snapshotService,
+        private readonly NaVirtualMeetingOperationalAlertService $operationalAlertService,
     ) {}
 
     /**
@@ -41,6 +42,7 @@ class NaVirtualMeetingSyncService
             $result = $this->persist($meetings, $syncedAt);
             $this->saveHomepageSnapshot($syncedAt);
             $this->markSyncSuccess($syncedAt);
+            $this->operationalAlertService->handleSyncSuccess($result, $syncedAt);
             $this->invalidateHomepageCache();
 
             return [
@@ -48,7 +50,9 @@ class NaVirtualMeetingSyncService
                 'source_url' => self::SOURCE_URL,
             ];
         } catch (Throwable $e) {
-            $this->markSyncFailure(now(), $e->getMessage());
+            $failedAt = now();
+            $this->markSyncFailure($failedAt, $e->getMessage());
+            $this->operationalAlertService->handleSyncFailure($e->getMessage(), $failedAt);
 
             throw $e;
         }

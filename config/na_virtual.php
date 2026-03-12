@@ -27,4 +27,14 @@ return [
         'last_success_cache_key' => env('NA_VIRTUAL_SYNC_STATUS_LAST_SUCCESS_CACHE_KEY', 'na.virtual.sync.last_success_at'),
         'last_failure_cache_key' => env('NA_VIRTUAL_SYNC_STATUS_LAST_FAILURE_CACHE_KEY', 'na.virtual.sync.last_failure_at'),
     ],
+
+    'alerts' => [
+        'enabled' => (bool) env('NA_VIRTUAL_ALERTS_ENABLED', true),
+        'channel' => env('NA_VIRTUAL_ALERTS_CHANNEL', 'na_virtual_alerts'),
+        'consecutive_failures_threshold' => (int) env('NA_VIRTUAL_ALERTS_CONSECUTIVE_FAILURES_THRESHOLD', 3),
+        'consecutive_failures_cache_key' => env('NA_VIRTUAL_ALERTS_CONSECUTIVE_FAILURES_CACHE_KEY', 'na.virtual.alerts.consecutive_failures'),
+        'volume_drop_percent_threshold' => (float) env('NA_VIRTUAL_ALERTS_VOLUME_DROP_PERCENT_THRESHOLD', 60),
+        'min_active_base_for_volume_alert' => (int) env('NA_VIRTUAL_ALERTS_MIN_ACTIVE_BASE_FOR_VOLUME_ALERT', 50),
+        'webhook_url' => env('NA_VIRTUAL_ALERTS_WEBHOOK_URL', ''),
+    ],
 ];

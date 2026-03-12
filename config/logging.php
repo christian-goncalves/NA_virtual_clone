@@ -73,6 +73,14 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'na_virtual_alerts' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/na_virtual_alerts.log'),
+            'level' => env('NA_VIRTUAL_ALERTS_LOG_LEVEL', 'warning'),
+            'days' => env('NA_VIRTUAL_ALERTS_LOG_DAYS', 30),
+            'replace_placeholders' => true,
+        ],
+
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),

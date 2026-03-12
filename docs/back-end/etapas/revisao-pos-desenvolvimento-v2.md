@@ -1,3 +1,7 @@
+> **STATUS DOCUMENTAL:** histórico superado.  
+> Este documento registrou pendências intermediárias já tratadas em rodadas posteriores.  
+> Para a fonte de verdade atual, usar: `docs/etapas/revisão-pos-desenvolvimento-v3.md`.
+
 Perfeito. Com base no `Top 10 Gaps Prioritários` e no `progresso-etapas.md` atual, o que **ainda está no escopo e não foi abordado** é:
 
 1. **Fallback com último snapshot válido**  

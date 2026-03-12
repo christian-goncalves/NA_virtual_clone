@@ -165,6 +165,9 @@ class VirtualMeetingControllerTest extends TestCase
 
         $response
             ->assertOk()
+            ->assertViewHas('runningCount', 1)
+            ->assertViewHas('startingSoonCount', 0)
+            ->assertViewHas('upcomingCount', 0)
             ->assertSeeText('Grupo Snapshot')
             ->assertSeeText('Reuniões em andamento');
     }
@@ -198,6 +201,9 @@ class VirtualMeetingControllerTest extends TestCase
 
         $response
             ->assertOk()
+            ->assertViewHas('runningCount', 0)
+            ->assertViewHas('startingSoonCount', 0)
+            ->assertViewHas('upcomingCount', 0)
             ->assertSeeText('Nenhuma reuniao em andamento neste momento.')
             ->assertSeeText('Nenhuma reuniao iniciando na janela de tempo atual.')
             ->assertSeeText('Nenhuma reuniao futura encontrada no momento.');

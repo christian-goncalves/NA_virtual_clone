@@ -110,9 +110,36 @@
 
 ---
 
+## Pós-etapas - Operação e produto
+**Status:** parcialmente concluído
+
+**Concluído**
+- Fallback com último snapshot válido:
+  - migration/model `virtual_meeting_snapshots`
+  - gravação de snapshot pós-sync
+  - uso de snapshot na homepage quando houver falha da origem/sync
+- API pública JSON:
+  - `GET /api/reunioes-virtuais`
+  - `VirtualMeetingApiController`
+  - payload equivalente ao view model
+- Alerta operacional ativo:
+  - falhas consecutivas de sync
+  - queda brusca de volume
+  - canal dedicado `na_virtual_alerts` + webhook opcional
+- Refino de partials:
+  - `section-running`
+  - `section-starting-soon`
+  - `section-upcoming`
+
+**Pendente**
+- Parametrização da frequência do scheduler por ambiente (`5/10/30`) via env/config.
+
+---
+
 ## Testes automatizados já criados
 - `tests/Feature/NaVirtualMeetingSyncCommandTest.php`
 - `tests/Feature/NaVirtualMeetingGroupingServiceTest.php`
 - `tests/Feature/VirtualMeetingControllerTest.php`
 - `tests/Feature/SyncNaVirtualMeetingsJobTest.php`
 - `tests/Feature/NaVirtualMeetingSchedulerTest.php`
+- `tests/Feature/VirtualMeetingApiControllerTest.php`

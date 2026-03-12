@@ -81,6 +81,77 @@ class VirtualMeetingApiControllerTest extends TestCase
             ->assertJsonPath('groupedBadges.aberta', 'Aberta - publico em geral');
     }
 
+    public function test_api_contract_has_expected_types_and_minimum_meeting_item_structure(): void
+    {
+        $serverTime = Carbon::create(2026, 3, 12, 12, 0, 0, 'America/Sao_Paulo');
+        $startAt = Carbon::create(2026, 3, 12, 12, 0, 0, 'America/Sao_Paulo');
+        $endAt = Carbon::create(2026, 3, 12, 14, 0, 0, 'America/Sao_Paulo');
+
+        $this->mock(NaVirtualMeetingHomepageDataService::class, function ($mock) use ($serverTime, $startAt, $endAt): void {
+            $mock->shouldReceive('buildForHomepage')
+                ->once()
+                ->andReturn([
+                    'serverTime' => $serverTime,
+                    'runningCount' => 1,
+                    'startingSoonCount' => 0,
+                    'upcomingCount' => 0,
+                    'runningMeetings' => new Collection([
+                        [
+                            'meeting' => (object) [
+                                'name' => 'Grupo Estrutura API',
+                                'meeting_platform' => 'zoom',
+                                'meeting_url' => 'https://example.com/estrutura',
+                                'type_label' => 'aberta',
+                                'format_labels' => ['aberta'],
+                            ],
+                            'start_at' => $startAt,
+                            'end_at' => $endAt,
+                            'starts_in_minutes' => 0,
+                            'ends_in_minutes' => 120,
+                            'status_text' => 'termina em 120 min',
+                        ],
+                    ]),
+                    'startingSoonMeetings' => new Collection(),
+                    'upcomingMeetings' => new Collection(),
+                    'groupedBadges' => [
+                        'aberta' => 'Aberta - publico em geral',
+                    ],
+                ]);
+        });
+
+        $response = $this->getJson('/api/reunioes-virtuais');
+        $json = $response->json();
+
+        $response->assertOk();
+        $this->assertIsArray($json);
+        $this->assertIsString($json['serverTime']);
+        $this->assertIsInt($json['runningCount']);
+        $this->assertIsInt($json['startingSoonCount']);
+        $this->assertIsInt($json['upcomingCount']);
+        $this->assertIsArray($json['runningMeetings']);
+        $this->assertIsArray($json['startingSoonMeetings']);
+        $this->assertIsArray($json['upcomingMeetings']);
+        $this->assertIsArray($json['groupedBadges']);
+
+        $this->assertNotEmpty($json['runningMeetings']);
+        $first = $json['runningMeetings'][0];
+        $this->assertIsArray($first);
+        $this->assertArrayHasKey('meeting', $first);
+        $this->assertArrayHasKey('start_at', $first);
+        $this->assertArrayHasKey('end_at', $first);
+        $this->assertArrayHasKey('starts_in_minutes', $first);
+        $this->assertArrayHasKey('ends_in_minutes', $first);
+        $this->assertArrayHasKey('status_text', $first);
+
+        $this->assertIsArray($first['meeting']);
+        $this->assertArrayHasKey('name', $first['meeting']);
+        $this->assertArrayHasKey('meeting_platform', $first['meeting']);
+        $this->assertArrayHasKey('meeting_url', $first['meeting']);
+        $this->assertArrayHasKey('type_label', $first['meeting']);
+        $this->assertArrayHasKey('format_labels', $first['meeting']);
+        $this->assertIsArray($first['meeting']['format_labels']);
+    }
+
     public function test_api_uses_snapshot_fallback_without_breaking_contract(): void
     {
         config()->set('na_virtual.sync_status.last_success_cache_key', 'na.virtual.sync.last_success_at.test');
@@ -139,4 +210,3 @@ class VirtualMeetingApiControllerTest extends TestCase
             ->assertJsonPath('groupedBadges.aberta', 'Aberta - publico em geral');
     }
 }
-

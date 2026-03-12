@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\VirtualMeeting;
 use App\Models\VirtualMeetingSnapshot;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -226,6 +227,111 @@ class NaVirtualMeetingSyncCommandTest extends TestCase
                 'meeting_url' => 'https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1',
             ]);
         }
+    }
+
+    public function test_alerts_when_consecutive_failures_threshold_is_reached(): void
+    {
+        config()->set('na_virtual.alerts.enabled', true);
+        config()->set('na_virtual.alerts.webhook_url', 'https://alerts.local/webhook');
+        config()->set('na_virtual.alerts.consecutive_failures_threshold', 2);
+        config()->set('na_virtual.alerts.consecutive_failures_cache_key', 'na.virtual.alerts.consecutive_failures.test');
+
+        Http::fake([
+            'https://www.na.org.br/wp-admin/admin-ajax.php*' => Http::response('falha', 500),
+            'https://alerts.local/webhook' => Http::response([], 200),
+        ]);
+
+        $this->artisan('na:sync-virtual-meetings')
+            ->expectsOutputToContain('Falha na sincronização:')
+            ->assertFailed();
+        $this->artisan('na:sync-virtual-meetings')
+            ->expectsOutputToContain('Falha na sincronização:')
+            ->assertFailed();
+
+        Http::assertSent(function (Request $request): bool {
+            return $request->url() === 'https://alerts.local/webhook'
+                && $request['type'] === 'consecutive_failures'
+                && $request['consecutive_failures'] === 2
+                && $request['decision'] === 'alert_dispatched';
+        });
+    }
+
+    public function test_does_not_alert_when_consecutive_failures_are_below_threshold(): void
+    {
+        config()->set('na_virtual.alerts.enabled', true);
+        config()->set('na_virtual.alerts.webhook_url', 'https://alerts.local/webhook');
+        config()->set('na_virtual.alerts.consecutive_failures_threshold', 3);
+        config()->set('na_virtual.alerts.consecutive_failures_cache_key', 'na.virtual.alerts.consecutive_failures.test');
+
+        Http::fake([
+            'https://www.na.org.br/wp-admin/admin-ajax.php*' => Http::response('falha', 500),
+            'https://alerts.local/webhook' => Http::response([], 200),
+        ]);
+
+        $this->artisan('na:sync-virtual-meetings')
+            ->expectsOutputToContain('Falha na sincronização:')
+            ->assertFailed();
+        $this->artisan('na:sync-virtual-meetings')
+            ->expectsOutputToContain('Falha na sincronização:')
+            ->assertFailed();
+
+        Http::assertNotSent(function (Request $request): bool {
+            return $request->url() === 'https://alerts.local/webhook';
+        });
+    }
+
+    public function test_alerts_when_volume_drop_is_abrupt_after_successful_sync(): void
+    {
+        $this->seedActiveMeetings(10);
+
+        config()->set('na_virtual.alerts.enabled', true);
+        config()->set('na_virtual.alerts.webhook_url', 'https://alerts.local/webhook');
+        config()->set('na_virtual.alerts.volume_drop_percent_threshold', 60);
+        config()->set('na_virtual.alerts.min_active_base_for_volume_alert', 5);
+
+        Http::fake([
+            'https://www.na.org.br/wp-admin/admin-ajax.php*' => Http::response(
+                $this->buildPayloadFromHtml($this->singleMeetingHtml()),
+                200
+            ),
+            'https://alerts.local/webhook' => Http::response([], 200),
+        ]);
+
+        $this->artisan('na:sync-virtual-meetings')
+            ->expectsOutputToContain('Sincronização concluída.')
+            ->assertSuccessful();
+
+        Http::assertSent(function (Request $request): bool {
+            return $request->url() === 'https://alerts.local/webhook'
+                && $request['type'] === 'volume_drop'
+                && $request['drop_percentage'] >= 60
+                && $request['decision'] === 'alert_dispatched';
+        });
+    }
+
+    public function test_does_not_dispatch_operational_alert_in_normal_scenario(): void
+    {
+        config()->set('na_virtual.alerts.enabled', true);
+        config()->set('na_virtual.alerts.webhook_url', 'https://alerts.local/webhook');
+        config()->set('na_virtual.alerts.volume_drop_percent_threshold', 60);
+        config()->set('na_virtual.alerts.min_active_base_for_volume_alert', 50);
+        config()->set('na_virtual.alerts.consecutive_failures_threshold', 3);
+
+        Http::fake([
+            'https://www.na.org.br/wp-admin/admin-ajax.php*' => Http::response(
+                $this->buildPayloadFromHtml($this->validMeetingsHtml()),
+                200
+            ),
+            'https://alerts.local/webhook' => Http::response([], 200),
+        ]);
+
+        $this->artisan('na:sync-virtual-meetings')
+            ->expectsOutputToContain('Sincronização concluída.')
+            ->assertSuccessful();
+
+        Http::assertNotSent(function (Request $request): bool {
+            return $request->url() === 'https://alerts.local/webhook';
+        });
     }
 
     private function buildPayloadFromHtml(string $html): string

@@ -1,3 +1,7 @@
+> **STATUS DOCUMENTAL:** histórico superado.  
+> Este documento reflete um diagnóstico anterior ao estado atual do projeto.  
+> Para a fonte de verdade atual, usar: `docs/etapas/revisão-pos-desenvolvimento-v3.md`.
+
 **Resumo Executivo**
 A base arquitetural principal do guia está implementada: coleta/sync, persistência local, agrupamento, controller público, UI Blade e job com scheduler. O parser foi evoluído e hoje trata múltiplas reuniões por dia/célula, reduzindo perdas de horários críticos.  
 Os maiores gaps atuais estão em camadas operacionais e de produto: ausência de cache da homepage, ausência de fallback com último snapshot válido, ausência de API pública JSON, ausência de guard rail para inativação em queda brusca e inexistência de mecanismo de alerta operacional.  
