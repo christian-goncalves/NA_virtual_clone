@@ -5,8 +5,8 @@
 - Etapa 2: concluída
 - Etapa 3: concluída
 - Etapa 4: concluída
-- Etapa 5: pendente
-- Etapa 6: pendente (opcional)
+- Etapa 5: concluída
+- Etapa 6: concluída
 
 ---
 
@@ -71,23 +71,48 @@
 ---
 
 ## Etapa 5 - Tela (Blade + Tailwind)
-**Status:** pendente
+**Status:** concluída
 
 **Planejado**
 - Criar view `virtual-meetings/index.blade.php`
 - Criar partials conforme estrutura definida no guia
 
+**Entregue**
+- `resources/views/virtual-meetings/index.blade.php`
+- `resources/views/virtual-meetings/partials/header.blade.php`
+- `resources/views/virtual-meetings/partials/hero.blade.php`
+- `resources/views/virtual-meetings/partials/sections.blade.php`
+- `resources/views/virtual-meetings/partials/meeting-card.blade.php`
+- `resources/views/virtual-meetings/partials/meeting-row.blade.php`
+- `resources/views/virtual-meetings/partials/footer.blade.php`
+- Testes em `tests/Feature/VirtualMeetingControllerTest.php` cobrindo renderização da página e blocos principais.
+
 ---
 
 ## Etapa 6 - Scheduler/job
-**Status:** pendente
+**Status:** concluída
 
 **Planejado**
 - Job recorrente para sync
 - Schedule recomendado: a cada 5 minutos
+
+**Entregue**
+- `app/Jobs/SyncNaVirtualMeetingsJob.php`
+- Agendamento em `routes/console.php`:
+  - `sync-na-virtual-meetings-job`
+  - `everyThirtyMinutes()`
+- Testes:
+  - `tests/Feature/SyncNaVirtualMeetingsJobTest.php`
+  - `tests/Feature/NaVirtualMeetingSchedulerTest.php`
+
+**Observação**
+- Frequência atual configurada em 30 minutos (decisão operacional desta rodada).
 
 ---
 
 ## Testes automatizados já criados
 - `tests/Feature/NaVirtualMeetingSyncCommandTest.php`
 - `tests/Feature/NaVirtualMeetingGroupingServiceTest.php`
+- `tests/Feature/VirtualMeetingControllerTest.php`
+- `tests/Feature/SyncNaVirtualMeetingsJobTest.php`
+- `tests/Feature/NaVirtualMeetingSchedulerTest.php`
