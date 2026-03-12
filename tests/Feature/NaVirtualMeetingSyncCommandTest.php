@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\VirtualMeeting;
+use App\Models\VirtualMeetingSnapshot;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -39,6 +40,10 @@ class NaVirtualMeetingSyncCommandTest extends TestCase
             'meeting_platform' => 'zoom',
             'is_active' => 1,
         ]);
+        $this->assertDatabaseCount('virtual_meeting_snapshots', 1);
+        $this->assertDatabaseHas('virtual_meeting_snapshots', [
+            'context' => 'na.virtual.homepage',
+        ]);
     }
 
     public function test_sync_invalidates_homepage_cache_after_success(): void
@@ -58,6 +63,7 @@ class NaVirtualMeetingSyncCommandTest extends TestCase
             ->assertSuccessful();
 
         $this->assertFalse(Cache::has('na.virtual.homepage.test'));
+        $this->assertSame(1, VirtualMeetingSnapshot::query()->count());
     }
 
     public function test_command_fails_when_payload_has_no_separator(): void

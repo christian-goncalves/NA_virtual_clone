@@ -17,6 +17,11 @@ class NaVirtualMeetingSyncService
     private const SOURCE_URL = 'https://www.na.org.br/virtual/';
     private const AJAX_URL = 'https://www.na.org.br/wp-admin/admin-ajax.php';
 
+    public function __construct(
+        private readonly NaVirtualMeetingGroupingService $groupingService,
+        private readonly NaVirtualMeetingSnapshotService $snapshotService,
+    ) {}
+
     /**
      * Sync meetings from official source into local database.
      *
@@ -24,21 +29,29 @@ class NaVirtualMeetingSyncService
      */
     public function sync(): array
     {
-        $syncedAt = now();
-        $payload = $this->downloadMeetingsPayload();
-        $meetings = $this->parseMeetings($payload);
+        try {
+            $syncedAt = now();
+            $payload = $this->downloadMeetingsPayload();
+            $meetings = $this->parseMeetings($payload);
 
-        if ($meetings === []) {
-            throw new RuntimeException('Nenhuma reunião válida foi extraída; sincronização abortada para proteger a base local.');
+            if ($meetings === []) {
+                throw new RuntimeException('Nenhuma reunião válida foi extraída; sincronização abortada para proteger a base local.');
+            }
+
+            $result = $this->persist($meetings, $syncedAt);
+            $this->saveHomepageSnapshot($syncedAt);
+            $this->markSyncSuccess($syncedAt);
+            $this->invalidateHomepageCache();
+
+            return [
+                ...$result,
+                'source_url' => self::SOURCE_URL,
+            ];
+        } catch (Throwable $e) {
+            $this->markSyncFailure(now(), $e->getMessage());
+
+            throw $e;
         }
-
-        $result = $this->persist($meetings, $syncedAt);
-        $this->invalidateHomepageCache();
-
-        return [
-            ...$result,
-            'source_url' => self::SOURCE_URL,
-        ];
     }
 
     private function downloadMeetingsPayload(): string
@@ -821,6 +834,33 @@ class NaVirtualMeetingSyncService
 
         Log::info('Cache da homepage de reunioes virtuais invalidado apos sync.', [
             'cache_key' => $cacheKey,
+        ]);
+    }
+
+    private function saveHomepageSnapshot(Carbon $capturedAt): void
+    {
+        $dataset = $this->groupingService->buildHomePageData($capturedAt);
+        $this->snapshotService->saveHomepageSnapshot($dataset, $capturedAt);
+
+        Log::info('Snapshot da homepage de reunioes virtuais atualizado apos sync.', [
+            'captured_at' => $capturedAt->toIso8601String(),
+        ]);
+    }
+
+    private function markSyncSuccess(Carbon $timestamp): void
+    {
+        $successCacheKey = (string) config('na_virtual.sync_status.last_success_cache_key', 'na.virtual.sync.last_success_at');
+        Cache::forever($successCacheKey, $timestamp->toIso8601String());
+    }
+
+    private function markSyncFailure(Carbon $timestamp, string $message): void
+    {
+        $failureCacheKey = (string) config('na_virtual.sync_status.last_failure_cache_key', 'na.virtual.sync.last_failure_at');
+        Cache::forever($failureCacheKey, $timestamp->toIso8601String());
+
+        Log::warning('Sincronizacao de reunioes virtuais falhou; status de falha registrado.', [
+            'failed_at' => $timestamp->toIso8601String(),
+            'message' => $message,
         ]);
     }
 }
