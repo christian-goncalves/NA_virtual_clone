@@ -1,9 +1,29 @@
-<section class="mb-8 rounded-3xl border border-slate-800/80 bg-slate-900/65 p-6 shadow-2xl shadow-slate-950/60 sm:p-8">
-    <p class="text-sm font-medium text-cyan-300">Encontre uma reuniao agora</p>
-    <h2 class="mt-2 max-w-3xl text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-        Plataforma publica com reunioes em andamento, iniciando em breve e proximas opcoes.
-    </h2>
-    <p class="mt-4 max-w-2xl text-sm text-slate-300 sm:text-base">
-        Os dados sao sincronizados com a fonte oficial e organizados para facilitar a entrada imediata.
-    </p>
+<section class="rounded-[1.75rem] bg-[hsl(var(--na-blue))] px-5 py-7 text-white shadow-[0_20px_50px_rgba(0,70,163,0.25)] md:px-8 md:py-9">
+    <div class="max-w-5xl text-center md:text-left">
+        <p class="text-base font-semibold text-white/80">Problemas com drogas?</p>
+        <h2 class="font-display mt-2 text-3xl font-bold leading-tight md:text-4xl lg:text-5xl">
+            Se voce quiser, <span class="text-[hsl(var(--na-gold))]">NA</span> pode te ajudar
+        </h2>
+
+        <div class="mt-6 flex flex-wrap items-center justify-center gap-2 md:justify-start">
+            <span class="vm-badge bg-white/15 px-3 py-1.5 text-sm font-semibold text-white">Reunioes Virtuais</span>
+            <span class="vm-badge vm-badge-accent px-3 py-1.5 text-sm font-bold">24 Horas</span>
+            <span class="vm-badge bg-white/15 px-3 py-1.5 text-sm font-semibold text-white">Gratuito</span>
+        </div>
+
+        <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center md:justify-start">
+            <a href="{{ route('virtual-meetings.index') }}" class="vm-btn vm-btn-secondary w-full px-5 py-3 text-sm font-bold sm:w-auto">
+                <i class="fa-solid fa-video text-[0.78rem]" aria-hidden="true"></i>
+                Reunioes Online
+            </a>
+            <a href="tel:30035222" class="vm-btn vm-btn-accent w-full px-5 py-3 text-sm font-bold sm:w-auto">
+                <i class="fa-solid fa-phone text-[0.78rem]" aria-hidden="true"></i>
+                Ligar Agora - 3003-5222
+            </a>
+            <a href="https://www.na.org.br/grupos" target="_blank" rel="noopener noreferrer" class="vm-btn w-full border border-white/30 bg-white/15 px-5 py-3 text-sm font-semibold text-white hover:bg-white/25 sm:w-auto">
+                <i class="fa-solid fa-location-dot text-[0.78rem]" aria-hidden="true"></i>
+                Sala Perto de Voce
+            </a>
+        </div>
+    </div>
 </section>

@@ -1,19 +1,31 @@
-<div class="rounded-2xl border border-cyan-800/30 bg-slate-900/65 p-5 sm:p-6">
-    <div class="mb-4 flex items-center justify-between gap-3">
-        <h3 class="text-xl font-semibold text-white">Reuniões em andamento</h3>
-        <span class="rounded-full bg-cyan-500/15 px-3 py-1 text-sm font-semibold text-cyan-200">{{ $runningCount }}</span>
+<div class="vm-section-shell p-5 sm:p-6">
+    <div class="vm-section-header">
+        <h3 class="vm-section-title"><i class="fa-regular fa-circle-dot mr-1 text-[0.8rem] text-rose-500" aria-hidden="true"></i>Reuniões em andamento</h3>
+        <span class="vm-counter-badge vm-counter-badge-running">{{ $runningCount }} em andamento</span>
     </div>
 
+    @if (!empty($groupedBadges))
+        <div class="mb-4 flex flex-wrap items-center gap-2">
+            <span class="text-xs font-medium text-[hsl(var(--muted-foreground))]">Tipos:</span>
+            @foreach ($groupedBadges as $badgeLabel => $badgeDescription)
+                @php
+                    $normalizedBadge = \Illuminate\Support\Str::lower(\Illuminate\Support\Str::ascii((string) $badgeLabel));
+                    $badgeClass = str_contains($normalizedBadge, 'aberta') ? 'vm-badge-type-open' : (str_contains($normalizedBadge, 'fechada') ? 'vm-badge-type-closed' : (str_contains($normalizedBadge, 'estudo') ? 'vm-badge-type-study' : 'vm-badge-type-theme'));
+                @endphp
+                <span class="vm-badge {{ $badgeClass }}">{{ ucfirst($badgeLabel) }} - {{ $badgeDescription }}</span>
+            @endforeach
+        </div>
+    @endif
+
     @if ($runningMeetings->isEmpty())
-        <p class="rounded-xl border border-dashed border-slate-700 bg-slate-900/60 px-4 py-6 text-sm text-slate-300">
+        <p class="vm-empty-state px-4 py-6">
             Nenhuma reuniao em andamento neste momento.
         </p>
     @else
-        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             @foreach ($runningMeetings as $meetingData)
                 @include('virtual-meetings.partials.meeting-card', ['meetingData' => $meetingData])
             @endforeach
         </div>
     @endif
 </div>
-

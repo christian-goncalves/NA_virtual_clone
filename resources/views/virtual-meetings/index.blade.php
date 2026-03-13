@@ -3,19 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0046A3">
     <title>NA Virtual - Reunioes</title>
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+    <link rel="apple-touch-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @endif
 </head>
-<body class="min-h-screen bg-slate-950 text-slate-100 antialiased">
-    <div class="relative overflow-hidden">
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(14,165,233,0.25),transparent_50%),radial-gradient(circle_at_75%_20%,rgba(249,115,22,0.16),transparent_35%)]"></div>
-        <div class="relative mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
-            @include('virtual-meetings.partials.header')
-            @include('virtual-meetings.partials.hero')
-            @include('virtual-meetings.partials.sections')
-            @include('virtual-meetings.partials.footer')
+<body class="min-h-screen overflow-x-hidden bg-[hsl(var(--background))] text-[hsl(var(--foreground))] antialiased">
+    <div class="relative overflow-hidden bg-gradient-to-b from-[hsl(var(--background))] via-[hsl(var(--background))] to-[hsl(var(--muted))]/55">
+        <div class="relative mx-auto max-w-6xl px-4 pb-14 pt-16 sm:px-6 lg:px-8">
+            <div class="space-y-8 md:space-y-10">
+                @include('virtual-meetings.partials.header')
+                @include('virtual-meetings.partials.hero')
+                @include('virtual-meetings.partials.sections')
+                @include('virtual-meetings.partials.footer')
+            </div>
         </div>
     </div>
 </body>

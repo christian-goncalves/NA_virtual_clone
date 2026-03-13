@@ -16,28 +16,40 @@
     if (is_string($typeLabel) && trim($typeLabel) !== '') {
         $typeDescription = data_get($groupedBadges ?? [], Str::lower(Str::ascii($typeLabel)));
     }
+
+    $normalizedType = is_string($typeLabel) ? Str::lower(Str::ascii($typeLabel)) : '';
+    $typeBadgeClass = str_contains($normalizedType, 'aberta')
+        ? 'vm-badge-type-open'
+        : (str_contains($normalizedType, 'fechada')
+            ? 'vm-badge-type-closed'
+            : (str_contains($normalizedType, 'estudo')
+                ? 'vm-badge-type-study'
+                : 'vm-badge-type-theme'));
 @endphp
 
-<article class="rounded-xl border border-slate-800 bg-slate-900/75 p-4 transition hover:border-slate-700">
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div class="min-w-0 flex-1">
-            <p class="text-sm font-semibold text-cyan-300">{{ $timeRange }}</p>
-            <h4 class="mt-1 truncate text-base font-semibold text-white">{{ $name }}</h4>
-            <p class="mt-1 text-sm text-slate-300">{{ ucfirst($platform) }}</p>
+<article class="vm-card-shell vm-meeting-row">
+    <div class="min-w-0 flex-1">
+        <p class="vm-time">{{ $timeRange }}</p>
+        <h4 class="vm-title vm-title-clamp-2 mt-1">{{ $name }}</h4>
+        <p class="vm-meta mt-1">{{ ucfirst($platform) }}</p>
+        <div class="mt-2 flex flex-wrap items-center gap-2">
             @if ($typeLabel)
-                <p class="mt-1 text-xs text-amber-200">{{ $typeLabel }}@if ($typeDescription) - {{ $typeDescription }}@endif</p>
+                <span class="vm-badge {{ $typeBadgeClass }}">{{ ucfirst($typeLabel) }}</span>
+            @endif
+            @if ($typeDescription)
+                <span class="vm-meta">{{ $typeDescription }}</span>
             @endif
         </div>
+    </div>
 
-        <div class="flex shrink-0 items-center gap-3">
-            <span class="text-sm text-slate-300">{{ $statusText ?: 'Horario a confirmar' }}</span>
-            @if ($meetingUrl)
-                <a href="{{ $meetingUrl }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center rounded-lg bg-orange-500 px-3 py-2 text-sm font-semibold text-slate-950 transition hover:bg-orange-400">
-                    Entrar
-                </a>
-            @else
-                <span class="inline-flex items-center rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-400">Sem link</span>
-            @endif
-        </div>
+    <div class="vm-meeting-row-actions shrink-0">
+        <span class="vm-status vm-status-truncate truncate">{{ $statusText ?: 'Horario a confirmar' }}</span>
+        @if ($meetingUrl)
+            <a href="{{ $meetingUrl }}" target="_blank" rel="noopener noreferrer" class="vm-btn vm-btn-primary min-w-[7.25rem]">
+                Entrar
+            </a>
+        @else
+            <span class="vm-link-disabled">Sem link</span>
+        @endif
     </div>
 </article>
