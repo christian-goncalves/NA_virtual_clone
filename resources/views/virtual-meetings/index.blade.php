@@ -15,13 +15,12 @@
 </head>
 <body class="min-h-screen overflow-x-hidden bg-[hsl(var(--background))] text-[hsl(var(--foreground))] antialiased">
     <div class="relative overflow-hidden bg-gradient-to-b from-[hsl(var(--background))] via-[hsl(var(--background))] to-[hsl(var(--muted))]/55">
-        <div class="relative mx-auto max-w-6xl px-4 pb-14 pt-16 sm:px-6 lg:px-8">
-            <div class="space-y-8 md:space-y-10">
-                @include('virtual-meetings.partials.header')
-                @include('virtual-meetings.partials.hero')
-                @include('virtual-meetings.partials.sections')
-                @include('virtual-meetings.partials.footer')
-            </div>
+        @include('virtual-meetings.partials.header')
+        @include('virtual-meetings.partials.hero')
+
+        <div class="relative mx-auto max-w-6xl px-4 pb-14 pt-8 sm:px-6 lg:px-8">
+            @include('virtual-meetings.partials.sections')
+            @include('virtual-meetings.partials.footer')
         </div>
     </div>
 </body>

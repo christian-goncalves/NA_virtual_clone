@@ -1,5 +1,5 @@
-<section class="rounded-[1.75rem] bg-[hsl(var(--na-blue))] px-5 py-7 text-white shadow-[0_20px_50px_rgba(0,70,163,0.25)] md:px-8 md:py-9">
-    <div class="max-w-5xl text-center md:text-left">
+<section class="w-full bg-[hsl(var(--na-blue))] pb-7 pt-16 text-white md:pb-9 md:pt-[4.5rem]">
+    <div class="mx-auto max-w-6xl px-4 text-center sm:px-6 md:text-left lg:px-8">
         <p class="text-base font-semibold text-white/80">Problemas com drogas?</p>
         <h2 class="font-display mt-2 text-3xl font-bold leading-tight md:text-4xl lg:text-5xl">
             Se voce quiser, <span class="text-[hsl(var(--na-gold))]">NA</span> pode te ajudar
