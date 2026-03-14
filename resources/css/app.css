@@ -45,9 +45,9 @@
 
 @layer components {
     .vm-logo-wrap {
-        background: #fff;
-        border: 1px solid hsl(var(--na-blue) / 0.55);
-        box-shadow: inset 0 0 0 1px hsl(var(--na-blue) / 0.08);
+        background: transparent;
+        border: 0;
+        box-shadow: none;
     }
 
     .vm-logo-image {
@@ -252,11 +252,13 @@
     .vm-badge {
         display: inline-flex;
         align-items: center;
+        gap: 0.3rem;
         border-radius: 9999px;
         padding: 0.3rem 0.65rem;
         font-size: 0.6875rem;
         font-weight: 700;
         line-height: 1;
+        white-space: nowrap;
     }
 
     .vm-badge-status {
@@ -435,3 +437,7 @@
         }
     }
 }
+
+
+
+

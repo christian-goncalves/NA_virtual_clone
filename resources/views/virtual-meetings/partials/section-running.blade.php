@@ -12,7 +12,7 @@
                     $normalizedBadge = \Illuminate\Support\Str::lower(\Illuminate\Support\Str::ascii((string) $badgeLabel));
                     $badgeClass = str_contains($normalizedBadge, 'aberta') ? 'vm-badge-type-open' : (str_contains($normalizedBadge, 'fechada') ? 'vm-badge-type-closed' : (str_contains($normalizedBadge, 'estudo') ? 'vm-badge-type-study' : 'vm-badge-type-theme'));
                 @endphp
-                <span class="vm-badge {{ $badgeClass }}">{{ ucfirst($badgeLabel) }} - {{ $badgeDescription }}</span>
+                @include('virtual-meetings.partials.type-badge', ['badgeClass' => $badgeClass, 'badgeLabel' => ucfirst($badgeLabel), 'badgeDescription' => $badgeDescription, 'badgeDescriptionExplicit' => true])
             @endforeach
         </div>
     @endif
@@ -29,3 +29,4 @@
         </div>
     @endif
 </div>
+

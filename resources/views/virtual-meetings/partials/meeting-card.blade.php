@@ -1,4 +1,5 @@
 @php
+    use Illuminate\Support\Carbon;
     use Illuminate\Support\Str;
 
     $meeting = data_get($meetingData, 'meeting');
@@ -13,7 +14,43 @@
     $meetingPassword = data_get($meetingData, 'meeting.meeting_password');
     $typeLabel = $meeting?->type_label;
     $formatLabels = is_array($meeting?->format_labels) ? $meeting->format_labels : [];
+    $isStudyMeeting = (bool) data_get($meeting, 'is_study', false);
+    $isOpenMeeting = (bool) data_get($meeting, 'is_open', false);
     $endsInMinutes = data_get($meetingData, 'ends_in_minutes');
+
+    $startAtCarbon = null;
+    if ($startAt instanceof Carbon) {
+        $startAtCarbon = $startAt;
+    } elseif ($startAt) {
+        $startAtCarbon = Carbon::parse($startAt);
+    }
+
+    $minutesFromStart = null;
+    if ($startAtCarbon instanceof Carbon) {
+        $nowAtMeetingTz = Carbon::now($startAtCarbon->getTimezone());
+        $startMinutesOfDay = ((int) $startAtCarbon->format('H') * 60) + (int) $startAtCarbon->format('i');
+        $nowMinutesOfDay = ((int) $nowAtMeetingTz->format('H') * 60) + (int) $nowAtMeetingTz->format('i');
+
+        $minutesFromStart = $nowMinutesOfDay - $startMinutesOfDay;
+
+        if ($minutesFromStart < 0) {
+            $minutesFromStart += 1440;
+        }
+    }
+
+    $justStarted = is_int($minutesFromStart)
+        && $minutesFromStart >= 0
+        && $minutesFromStart <= 30;
+
+    $runningBadgeText = $justStarted ? 'Começando Agora' : 'Em andamento';
+    $runningBadgeClass = $justStarted ? 'bg-[#ef4444] text-white' : 'vm-badge-status';
+    $runningBadgeTextClass = $justStarted ? '' : 'uppercase tracking-wide';
+    $cardToneClass = $justStarted
+        ? 'border-[#ef4444]/35 border-l-[#ef4444] shadow-[0_8px_24px_rgba(239,68,68,0.18)]'
+        : 'border-blue-100 border-l-[hsl(var(--na-blue))] hover:shadow-lg';
+    $ctaClass = $justStarted ? 'bg-[#ef4444] hover:bg-[#dc2626] text-white' : 'vm-btn-primary';
+    $ctaLabel = $justStarted ? 'Entrar Agora' : 'Entrar';
+
     $timeRange = ($startAt ? $startAt->format('H:i') : '--:--') . ' - ' . ($endAt ? $endAt->format('H:i') : '--:--');
 
     $normalizedType = is_string($typeLabel) ? Str::lower(Str::ascii($typeLabel)) : '';
@@ -24,13 +61,13 @@
         ->all();
     $typeBadgeClass = null;
     $typeBadgeLabel = null;
-    if (str_contains($normalizedType, 'estudo') || in_array('estudo', $normalizedFormats, true) || (bool) $meeting?->is_study) {
+    if (str_contains($normalizedType, 'estudo') || in_array('estudo', $normalizedFormats, true) || $isStudyMeeting) {
         $typeBadgeClass = 'vm-badge-type-study';
         $typeBadgeLabel = 'Estudo';
     } elseif (str_contains($normalizedType, 'fechada') || in_array('fechada', $normalizedFormats, true) || in_array('fechado', $normalizedFormats, true)) {
         $typeBadgeClass = 'vm-badge-type-closed';
         $typeBadgeLabel = 'Fechada';
-    } elseif (str_contains($normalizedType, 'aberta') || in_array('aberta', $normalizedFormats, true) || in_array('aberto', $normalizedFormats, true) || (bool) $meeting?->is_open) {
+    } elseif (str_contains($normalizedType, 'aberta') || in_array('aberta', $normalizedFormats, true) || in_array('aberto', $normalizedFormats, true) || $isOpenMeeting) {
         $typeBadgeClass = 'vm-badge-type-open';
         $typeBadgeLabel = 'Aberta';
     } elseif ($normalizedType === '') {
@@ -65,10 +102,13 @@
         ])));
 @endphp
 
-<article class="vm-card-shell vm-meeting-card w-full min-h-[215px] h-full rounded-xl border border-blue-100 border-l-4 border-l-[hsl(var(--na-blue))] p-4 transition-all hover:shadow-lg">
+<article class="vm-card-shell vm-meeting-card w-full min-h-[215px] h-full rounded-xl border border-l-4 p-4 transition-all {{ $cardToneClass }}">
     <div class="vm-running-top gap-2">
-        <span class="vm-badge vm-badge-status shrink-0 uppercase tracking-wide">
-            Em andamento
+        <span class="vm-badge {{ $runningBadgeClass }} shrink-0 {{ $runningBadgeTextClass }}">
+            @if ($justStarted)
+                <span class="h-2 w-2 rounded-full bg-white/85"></span>
+            @endif
+            {{ $runningBadgeText }}
         </span>
         <span class="vm-status {{ $statusClass }} vm-status-truncate truncate text-[11px] font-bold">{{ $statusText ?: 'Status indisponivel' }}</span>
     </div>
@@ -77,7 +117,7 @@
 
     @if ($typeBadgeLabel)
         <div class="flex flex-wrap items-center gap-1.5">
-            <span class="vm-badge {{ $typeBadgeClass }}">{{ $typeBadgeLabel }}</span>
+            @include('virtual-meetings.partials.type-badge', ['badgeClass' => $typeBadgeClass, 'badgeLabel' => $typeBadgeLabel, 'badgeDescription' => '', 'badgeDescriptionExplicit' => false])
         </div>
     @endif
 
@@ -88,9 +128,9 @@
 
     <div class="vm-card-actions mt-auto pt-1">
         @if ($meetingUrl)
-            <a href="{{ $meetingUrl }}" target="_blank" rel="noopener noreferrer" class="vm-btn vm-btn-primary vm-card-cta-main py-2.5 text-xs">
+            <a href="{{ $meetingUrl }}" target="_blank" rel="noopener noreferrer" class="vm-btn vm-card-cta-main py-2.5 text-xs {{ $ctaClass }}">
                 <i class="fa-solid fa-arrow-right-to-bracket text-[0.72rem]" aria-hidden="true"></i>
-                Entrar
+                {{ $ctaLabel }}
             </a>
         @else
             <span class="vm-link-disabled">Link indisponivel</span>
@@ -108,3 +148,7 @@
         </button>
     </div>
 </article>
+
+
+
+

@@ -2,7 +2,7 @@
     <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <div class="flex items-center gap-2">
             <div class="vm-logo-wrap flex h-9 w-9 items-center justify-center overflow-hidden rounded-full">
-                <img src="{{ asset('images/logo.png') }}" alt="Logo NA" class="vm-logo-image h-13 w-13 object-contain" />
+                <img src="{{ asset('images/logo.png') }}?v=2" alt="Logo NA" class="vm-logo-image h-full w-full object-cover" />
             </div>
             <p class="hidden text-sm font-bold leading-tight text-[hsl(var(--foreground))] sm:block">
                 Narcoticos<br>
@@ -66,3 +66,4 @@
         </div>
     </nav>
 </header>
+

@@ -11,6 +11,8 @@
     $meetingUrl = $meeting?->meeting_url;
     $typeLabel = $meeting?->type_label;
     $formatLabels = is_array($meeting?->format_labels) ? $meeting->format_labels : [];
+    $isStudyMeeting = (bool) data_get($meeting, 'is_study', false);
+    $isOpenMeeting = (bool) data_get($meeting, 'is_open', false);
     $timeRange = ($startAt ? $startAt->format('H:i') : '--:--') . ' - ' . ($endAt ? $endAt->format('H:i') : '--:--');
 
     $normalizedType = is_string($typeLabel) ? Str::lower(Str::ascii($typeLabel)) : '';
@@ -22,13 +24,13 @@
 
     $typeBadgeClass = null;
     $typeBadgeLabel = null;
-    if (str_contains($normalizedType, 'estudo') || in_array('estudo', $normalizedFormats, true) || (bool) $meeting?->is_study) {
+    if (str_contains($normalizedType, 'estudo') || in_array('estudo', $normalizedFormats, true) || $isStudyMeeting) {
         $typeBadgeClass = 'vm-badge-type-study';
         $typeBadgeLabel = 'Estudo';
     } elseif (str_contains($normalizedType, 'fechada') || in_array('fechada', $normalizedFormats, true) || in_array('fechado', $normalizedFormats, true)) {
         $typeBadgeClass = 'vm-badge-type-closed';
         $typeBadgeLabel = 'Fechada';
-    } elseif (str_contains($normalizedType, 'aberta') || in_array('aberta', $normalizedFormats, true) || in_array('aberto', $normalizedFormats, true) || (bool) $meeting?->is_open) {
+    } elseif (str_contains($normalizedType, 'aberta') || in_array('aberta', $normalizedFormats, true) || in_array('aberto', $normalizedFormats, true) || $isOpenMeeting) {
         $typeBadgeClass = 'vm-badge-type-open';
         $typeBadgeLabel = 'Aberta';
     } elseif ($normalizedType === '') {
@@ -44,7 +46,7 @@
         <p class="vm-meta mt-1">{{ ucfirst($platform) }}</p>
         <div class="mt-2 flex flex-wrap items-center gap-2">
             @if ($typeBadgeLabel)
-                <span class="vm-badge {{ $typeBadgeClass }}">{{ $typeBadgeLabel }}</span>
+                @include('virtual-meetings.partials.type-badge', ['badgeClass' => $typeBadgeClass, 'badgeLabel' => $typeBadgeLabel, 'badgeDescription' => '', 'badgeDescriptionExplicit' => false])
             @endif
         </div>
     </div>
@@ -60,3 +62,4 @@
         @endif
     </div>
 </article>
+
