@@ -10,7 +10,7 @@
             </p>
         </div>
 
-        <div class="hidden items-center gap-2 md:flex">
+        <div class="hidden items-center gap-2 lg:flex">
             <span class="text-xs uppercase tracking-wide text-[hsl(var(--muted-foreground))]">BRT</span>
             <span class="font-mono text-sm font-bold tracking-wider text-[hsl(var(--na-blue))]" data-vm-live-clock data-server-time="{{ $serverTime->toIso8601String() }}">{{ $serverTime->format('H:i:s') }}</span>
         </div>

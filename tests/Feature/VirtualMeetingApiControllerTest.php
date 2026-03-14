@@ -54,7 +54,7 @@ class VirtualMeetingApiControllerTest extends TestCase
                     'startingSoonMeetings' => new Collection(),
                     'upcomingMeetings' => new Collection(),
                     'groupedBadges' => [
-                        'aberta' => 'Aberta - publico em geral',
+                        'aberta' => 'público em geral',
                     ],
                 ]);
         });
@@ -78,7 +78,7 @@ class VirtualMeetingApiControllerTest extends TestCase
             ->assertJsonPath('runningMeetings.0.meeting.name', 'Grupo API')
             ->assertJsonPath('runningMeetings.0.meeting.meeting_platform', 'zoom')
             ->assertJsonPath('runningMeetings.0.meeting.format_labels.0', 'aberta')
-            ->assertJsonPath('groupedBadges.aberta', 'Aberta - publico em geral');
+            ->assertJsonPath('groupedBadges.aberta', 'público em geral');
     }
 
     public function test_api_contract_has_expected_types_and_minimum_meeting_item_structure(): void
@@ -114,7 +114,7 @@ class VirtualMeetingApiControllerTest extends TestCase
                     'startingSoonMeetings' => new Collection(),
                     'upcomingMeetings' => new Collection(),
                     'groupedBadges' => [
-                        'aberta' => 'Aberta - publico em geral',
+                        'aberta' => 'público em geral',
                     ],
                 ]);
         });
@@ -181,7 +181,7 @@ class VirtualMeetingApiControllerTest extends TestCase
                 'startingSoonMeetings' => [],
                 'upcomingMeetings' => [],
                 'groupedBadges' => [
-                    'aberta' => 'Aberta - publico em geral',
+                    'aberta' => 'público em geral',
                 ],
             ],
             'payload_hash' => sha1('snapshot-api-test'),
@@ -207,6 +207,6 @@ class VirtualMeetingApiControllerTest extends TestCase
             ])
             ->assertJsonPath('runningCount', 1)
             ->assertJsonPath('runningMeetings.0.meeting.name', 'Grupo Snapshot API')
-            ->assertJsonPath('groupedBadges.aberta', 'Aberta - publico em geral');
+            ->assertJsonPath('groupedBadges.aberta', 'público em geral');
     }
 }

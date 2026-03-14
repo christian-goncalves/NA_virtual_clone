@@ -10,21 +10,31 @@
     $platform = $meeting?->meeting_platform ?: 'Plataforma nao informada';
     $meetingUrl = $meeting?->meeting_url;
     $typeLabel = $meeting?->type_label;
+    $formatLabels = is_array($meeting?->format_labels) ? $meeting->format_labels : [];
     $timeRange = ($startAt ? $startAt->format('H:i') : '--:--') . ' - ' . ($endAt ? $endAt->format('H:i') : '--:--');
 
-    $typeDescription = null;
-    if (is_string($typeLabel) && trim($typeLabel) !== '') {
-        $typeDescription = data_get($groupedBadges ?? [], Str::lower(Str::ascii($typeLabel)));
-    }
-
     $normalizedType = is_string($typeLabel) ? Str::lower(Str::ascii($typeLabel)) : '';
-    $typeBadgeClass = str_contains($normalizedType, 'aberta')
-        ? 'vm-badge-type-open'
-        : (str_contains($normalizedType, 'fechada')
-            ? 'vm-badge-type-closed'
-            : (str_contains($normalizedType, 'estudo')
-                ? 'vm-badge-type-study'
-                : 'vm-badge-type-theme'));
+    $normalizedFormats = collect($formatLabels)
+        ->filter(fn ($format) => is_string($format) && trim($format) !== '')
+        ->map(fn ($format) => Str::lower(Str::ascii($format)))
+        ->values()
+        ->all();
+
+    $typeBadgeClass = null;
+    $typeBadgeLabel = null;
+    if (str_contains($normalizedType, 'estudo') || in_array('estudo', $normalizedFormats, true) || (bool) $meeting?->is_study) {
+        $typeBadgeClass = 'vm-badge-type-study';
+        $typeBadgeLabel = 'Estudo';
+    } elseif (str_contains($normalizedType, 'fechada') || in_array('fechada', $normalizedFormats, true) || in_array('fechado', $normalizedFormats, true)) {
+        $typeBadgeClass = 'vm-badge-type-closed';
+        $typeBadgeLabel = 'Fechada';
+    } elseif (str_contains($normalizedType, 'aberta') || in_array('aberta', $normalizedFormats, true) || in_array('aberto', $normalizedFormats, true) || (bool) $meeting?->is_open) {
+        $typeBadgeClass = 'vm-badge-type-open';
+        $typeBadgeLabel = 'Aberta';
+    } elseif ($normalizedType === '') {
+        $typeBadgeClass = 'vm-badge-type-closed';
+        $typeBadgeLabel = 'Fechada';
+    }
 @endphp
 
 <article class="vm-card-shell vm-meeting-row">
@@ -33,11 +43,8 @@
         <h4 class="vm-title vm-title-clamp-2 mt-1">{{ $name }}</h4>
         <p class="vm-meta mt-1">{{ ucfirst($platform) }}</p>
         <div class="mt-2 flex flex-wrap items-center gap-2">
-            @if ($typeLabel)
-                <span class="vm-badge {{ $typeBadgeClass }}">{{ ucfirst($typeLabel) }}</span>
-            @endif
-            @if ($typeDescription)
-                <span class="vm-meta">{{ $typeDescription }}</span>
+            @if ($typeBadgeLabel)
+                <span class="vm-badge {{ $typeBadgeClass }}">{{ $typeBadgeLabel }}</span>
             @endif
         </div>
     </div>

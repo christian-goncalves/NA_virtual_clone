@@ -28,9 +28,9 @@ class NaVirtualMeetingGroupingService
             'startingSoonMeetings' => $grouped['startingSoon'],
             'upcomingMeetings' => $grouped['upcoming'],
             'groupedBadges' => [
-                'aberta' => 'Aberta - publico em geral',
-                'fechada' => 'Fechada - quem tem ou acha que tem problemas com drogas',
-                'estudo' => 'Estudos - estudo de literatura',
+                'aberta' => 'público em geral',
+                'fechada' => 'que tem ou acha que tem problema com drogas',
+                'estudo' => 'estudo de literatura',
             ],
         ];
     }
@@ -118,7 +118,7 @@ class NaVirtualMeetingGroupingService
                     'starts_in_minutes' => 0,
                     'ends_in_minutes' => $endsIn,
                     'is_running' => true,
-                    'status_text' => "termina em {$endsIn} min",
+                    'status_text' => 'termina em ' . $this->formatMinutesForStatus($endsIn),
                 ];
             }
         }
@@ -140,7 +140,7 @@ class NaVirtualMeetingGroupingService
             'starts_in_minutes' => $startsIn,
             'ends_in_minutes' => (int) $now->diffInMinutes($next['end_at'], true),
             'is_running' => false,
-            'status_text' => "em {$startsIn} min",
+            'status_text' => 'em ' . $this->formatMinutesForStatus($startsIn),
         ];
     }
 
@@ -246,5 +246,19 @@ class NaVirtualMeetingGroupingService
             Str::startsWith($normalized, 'sab') => Carbon::SATURDAY,
             default => null,
         };
+    }
+
+    private function formatMinutesForStatus(int $minutes): string
+    {
+        $minutes = max(0, $minutes);
+
+        if ($minutes < 60) {
+            return "{$minutes} min";
+        }
+
+        $hours = intdiv($minutes, 60);
+        $remainingMinutes = $minutes % 60;
+
+        return "{$hours}h {$remainingMinutes}min";
     }
 }

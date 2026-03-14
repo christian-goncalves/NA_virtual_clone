@@ -40,7 +40,7 @@ class VirtualMeetingControllerTest extends TestCase
                     'startingSoonMeetings' => new Collection(),
                     'upcomingMeetings' => new Collection(),
                     'groupedBadges' => [
-                        'aberta' => 'Aberta - publico em geral',
+                        'aberta' => 'público em geral',
                     ],
                 ]);
         });
@@ -141,7 +141,7 @@ class VirtualMeetingControllerTest extends TestCase
                 'startingSoonMeetings' => [],
                 'upcomingMeetings' => [],
                 'groupedBadges' => [
-                    'aberta' => 'Aberta - publico em geral',
+                    'aberta' => 'público em geral',
                 ],
             ],
             'payload_hash' => sha1('snapshot-test'),

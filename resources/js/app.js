@@ -81,5 +81,97 @@ function initMobileMenu() {
     });
 }
 
+function initMeetingShare() {
+    const shareButtons = document.querySelectorAll('[data-vm-share-button]');
+    if (!shareButtons.length) return;
+
+    let toast = document.querySelector('[data-vm-share-toast]');
+
+    const ensureToast = () => {
+        if (toast) return toast;
+
+        toast = document.createElement('div');
+        toast.className = 'vm-share-toast';
+        toast.setAttribute('data-vm-share-toast', '');
+        toast.setAttribute('role', 'status');
+        toast.setAttribute('aria-live', 'polite');
+        document.body.appendChild(toast);
+
+        return toast;
+    };
+
+    let toastTimeoutId = null;
+    const showToast = (message, tone = 'success') => {
+        const node = ensureToast();
+        node.textContent = message;
+        node.dataset.tone = tone;
+        node.classList.add('is-visible');
+
+        if (toastTimeoutId) window.clearTimeout(toastTimeoutId);
+        toastTimeoutId = window.setTimeout(() => {
+            node.classList.remove('is-visible');
+        }, 2200);
+    };
+
+    const copyText = async (text) => {
+        if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(text);
+            return;
+        }
+
+        const helper = document.createElement('textarea');
+        helper.value = text;
+        helper.setAttribute('readonly', '');
+        helper.style.position = 'fixed';
+        helper.style.opacity = '0';
+        document.body.appendChild(helper);
+        helper.focus();
+        helper.select();
+
+        const succeeded = document.execCommand('copy');
+        document.body.removeChild(helper);
+
+        if (!succeeded) {
+            throw new Error('copy_failed');
+        }
+    };
+
+    document.addEventListener('click', async (event) => {
+        const target = event.target;
+        if (!(target instanceof Element)) return;
+
+        const button = target.closest('[data-vm-share-button]');
+        if (!(button instanceof HTMLButtonElement)) return;
+
+        const title = button.dataset.shareTitle?.trim() ?? '';
+        const text = button.dataset.shareText?.trim() ?? '';
+        const url = button.dataset.shareUrl?.trim() ?? '';
+
+        const sharePayload = {
+            title,
+            text,
+            ...(url ? { url } : {}),
+        };
+
+        try {
+            if (navigator.share && (!navigator.canShare || navigator.canShare(sharePayload))) {
+                await navigator.share(sharePayload);
+                showToast('Compartilhado');
+                return;
+            }
+
+            await copyText(text);
+            showToast('Link copiado');
+        } catch (error) {
+            if (error instanceof DOMException && error.name === 'AbortError') {
+                return;
+            }
+
+            showToast('Nao foi possivel compartilhar', 'error');
+        }
+    });
+}
+
 initLiveClock();
 initMobileMenu();
+initMeetingShare();
