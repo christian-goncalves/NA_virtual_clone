@@ -20,8 +20,9 @@
 
         <div class="relative mx-auto max-w-6xl px-4 pb-14 pt-8 sm:px-6 lg:px-8">
             @include('virtual-meetings.partials.sections')
-            @include('virtual-meetings.partials.footer')
         </div>
+
+        @include('virtual-meetings.partials.footer')
     </div>
 </body>
 </html>
