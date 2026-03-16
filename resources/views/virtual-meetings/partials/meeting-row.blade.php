@@ -55,6 +55,7 @@
         <span class="vm-status vm-status-truncate truncate">{{ $statusText ?: 'Horario a confirmar' }}</span>
         @if ($meetingUrl)
             <a href="{{ $meetingUrl }}" target="_blank" rel="noopener noreferrer" class="vm-btn vm-btn-primary min-w-[7.25rem]">
+                <i class="fa-solid fa-arrow-right-to-bracket text-[0.72rem]" aria-hidden="true"></i>
                 Entrar
             </a>
         @else

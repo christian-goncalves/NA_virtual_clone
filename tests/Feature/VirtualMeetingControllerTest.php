@@ -208,4 +208,79 @@ class VirtualMeetingControllerTest extends TestCase
             ->assertSeeText('Nenhuma reuniao iniciando na janela de tempo atual.')
             ->assertSeeText('Nenhuma reuniao futura encontrada no momento.');
     }
+    public function test_index_displays_public_meeting_fields_in_clear_text(): void
+    {
+        config()->set('na_virtual.privacy.mask_meeting_id', true);
+        config()->set('na_virtual.privacy.mask_meeting_password', true);
+
+        $serverTime = Carbon::create(2026, 3, 12, 12, 0, 0, 'America/Sao_Paulo');
+        $startAt = Carbon::create(2026, 3, 12, 12, 0, 0, 'America/Sao_Paulo');
+        $endAt = Carbon::create(2026, 3, 12, 14, 0, 0, 'America/Sao_Paulo');
+
+        $this->mock(NaVirtualMeetingHomepageDataService::class, function ($mock) use ($serverTime, $startAt, $endAt): void {
+            $mock->shouldReceive('buildForHomepage')
+                ->once()
+                ->andReturn([
+                    'serverTime' => $serverTime,
+                    'runningCount' => 1,
+                    'startingSoonCount' => 0,
+                    'upcomingCount' => 0,
+                    'runningMeetings' => new Collection([
+                        [
+                            'meeting' => (object) [
+                                'name' => 'Grupo Seguro',
+                                'meeting_platform' => 'zoom',
+                                'meeting_url' => null,
+                                'meeting_id' => '1234567890',
+                                'meeting_password' => 'abc123',
+                                'type_label' => 'aberta',
+                                'format_labels' => ['aberta'],
+                            ],
+                            'start_at' => $startAt,
+                            'end_at' => $endAt,
+                            'starts_in_minutes' => 0,
+                            'ends_in_minutes' => 120,
+                            'status_text' => 'termina em 120 min',
+                        ],
+                    ]),
+                    'startingSoonMeetings' => new Collection(),
+                    'upcomingMeetings' => new Collection(),
+                    'groupedBadges' => [],
+                ]);
+        });
+
+        $response = $this->get('/reunioes-virtuais');
+
+        $response
+            ->assertOk()
+            ->assertSee('1234567890')
+            ->assertSee('abc123');
+    }
+
+    public function test_index_applies_web_public_rate_limit(): void
+    {
+        config()->set('na_virtual.rate_limit.web_public_per_minute', 2);
+
+        $serverTime = Carbon::create(2026, 3, 11, 10, 0, 0, 'America/Sao_Paulo');
+
+        $this->mock(NaVirtualMeetingHomepageDataService::class, function ($mock) use ($serverTime): void {
+            $mock->shouldReceive('buildForHomepage')
+                ->once()
+                ->andReturn([
+                    'serverTime' => $serverTime,
+                    'runningCount' => 0,
+                    'startingSoonCount' => 0,
+                    'upcomingCount' => 0,
+                    'runningMeetings' => new Collection(),
+                    'startingSoonMeetings' => new Collection(),
+                    'upcomingMeetings' => new Collection(),
+                    'groupedBadges' => [],
+                ]);
+        });
+
+        $this->get('/reunioes-virtuais')->assertOk();
+        $this->get('/reunioes-virtuais')->assertOk();
+        $this->get('/reunioes-virtuais')->assertStatus(429);
+    }
 }
+

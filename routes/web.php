@@ -8,4 +8,5 @@ Route::get('/', function () {
 });
 
 Route::get('/reunioes-virtuais', [VirtualMeetingController::class, 'index'])
+    ->middleware('throttle:web-public')
     ->name('virtual-meetings.index');

@@ -10,6 +10,16 @@ return [
         'max_stale_minutes' => (int) env('NA_VIRTUAL_HOMEPAGE_FALLBACK_MAX_STALE_MINUTES', 180),
     ],
 
+    'privacy' => [
+        'mask_meeting_id' => (bool) env('NA_VIRTUAL_MASK_MEETING_ID', false),
+        'mask_meeting_password' => (bool) env('NA_VIRTUAL_MASK_MEETING_PASSWORD', false),
+    ],
+
+    'rate_limit' => [
+        'web_public_per_minute' => (int) env('WEB_PUBLIC_RATE_LIMIT_PER_MINUTE', 120),
+        'api_public_per_minute' => (int) env('API_PUBLIC_RATE_LIMIT_PER_MINUTE', 120),
+    ],
+
     'sync_guard' => [
         // Minimum number of meetings found in current run before allowing bulk inactivation.
         'min_found_for_inactivation' => (int) env('NA_VIRTUAL_SYNC_GUARD_MIN_FOUND_FOR_INACTIVATION', 5),
@@ -38,3 +48,4 @@ return [
         'webhook_url' => env('NA_VIRTUAL_ALERTS_WEBHOOK_URL', ''),
     ],
 ];
+

@@ -54,6 +54,11 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'force_https' => (bool) env('APP_FORCE_HTTPS', false),
+
+    'security_headers_enabled' => (bool) env('SECURITY_HEADERS_ENABLED', true),
+    'security_headers_enforce_in_local' => (bool) env('SECURITY_HEADERS_ENFORCE_IN_LOCAL', false),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

@@ -18,6 +18,9 @@
     $isOpenMeeting = (bool) data_get($meeting, 'is_open', false);
     $endsInMinutes = data_get($meetingData, 'ends_in_minutes');
 
+    $displayMeetingId = is_string($meetingId) ? trim($meetingId) : null;
+    $displayMeetingPassword = is_string($meetingPassword) ? trim($meetingPassword) : null;
+
     $startAtCarbon = null;
     if ($startAt instanceof Carbon) {
         $startAtCarbon = $startAt;
@@ -40,7 +43,7 @@
 
     $justStarted = is_int($minutesFromStart)
         && $minutesFromStart >= 0
-        && $minutesFromStart <= 30;
+        && $minutesFromStart <= 15;
 
     $runningBadgeText = $justStarted ? 'Começando Agora' : 'Em andamento';
     $runningBadgeClass = $justStarted ? 'bg-[#ef4444] text-white' : 'vm-badge-status';
@@ -83,11 +86,11 @@
     if (is_string($platform) && trim($platform) !== '') {
         $metaParts[] = ucfirst($platform);
     }
-    if (is_string($meetingId) && trim($meetingId) !== '') {
-        $metaParts[] = 'ID: ' . trim($meetingId);
+    if (is_string($displayMeetingId) && trim($displayMeetingId) !== '') {
+        $metaParts[] = 'ID: ' . trim($displayMeetingId);
     }
-    if (is_string($meetingPassword) && trim($meetingPassword) !== '') {
-        $metaParts[] = 'Senha: ' . trim($meetingPassword);
+    if (is_string($displayMeetingPassword) && trim($displayMeetingPassword) !== '') {
+        $metaParts[] = 'Senha: ' . trim($displayMeetingPassword);
     }
     $metaLine = $metaParts !== [] ? implode(' · ', $metaParts) : 'Plataforma nao informada';
 
@@ -97,8 +100,8 @@
             $name,
             $timeRange,
             ucfirst($platform),
-            is_string($meetingId) && trim($meetingId) !== '' ? 'ID: ' . trim($meetingId) : null,
-            is_string($meetingPassword) && trim($meetingPassword) !== '' ? 'Senha: ' . trim($meetingPassword) : null,
+            is_string($displayMeetingId) && trim($displayMeetingId) !== '' ? 'ID: ' . trim($displayMeetingId) : null,
+            is_string($displayMeetingPassword) && trim($displayMeetingPassword) !== '' ? 'Senha: ' . trim($displayMeetingPassword) : null,
         ])));
 @endphp
 
@@ -148,7 +151,4 @@
         </button>
     </div>
 </article>
-
-
-
 

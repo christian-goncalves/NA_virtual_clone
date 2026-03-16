@@ -209,4 +209,29 @@ class VirtualMeetingApiControllerTest extends TestCase
             ->assertJsonPath('runningMeetings.0.meeting.name', 'Grupo Snapshot API')
             ->assertJsonPath('groupedBadges.aberta', 'público em geral');
     }
+    public function test_api_applies_public_rate_limit(): void
+    {
+        config()->set('na_virtual.rate_limit.api_public_per_minute', 2);
+
+        $serverTime = Carbon::create(2026, 3, 12, 12, 0, 0, 'America/Sao_Paulo');
+
+        $this->mock(NaVirtualMeetingHomepageDataService::class, function ($mock) use ($serverTime): void {
+            $mock->shouldReceive('buildForHomepage')
+                ->times(2)
+                ->andReturn([
+                    'serverTime' => $serverTime,
+                    'runningCount' => 0,
+                    'startingSoonCount' => 0,
+                    'upcomingCount' => 0,
+                    'runningMeetings' => new Collection(),
+                    'startingSoonMeetings' => new Collection(),
+                    'upcomingMeetings' => new Collection(),
+                    'groupedBadges' => [],
+                ]);
+        });
+
+        $this->getJson('/api/reunioes-virtuais')->assertOk();
+        $this->getJson('/api/reunioes-virtuais')->assertOk();
+        $this->getJson('/api/reunioes-virtuais')->assertStatus(429);
+    }
 }

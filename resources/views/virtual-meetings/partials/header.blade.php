@@ -4,9 +4,9 @@
             <div class="vm-logo-wrap flex h-9 w-9 items-center justify-center overflow-hidden rounded-full">
                 <img src="{{ asset('images/logo.png') }}?v=2" alt="Logo NA" class="vm-logo-image h-full w-full object-cover" />
             </div>
-            <p class="hidden text-sm font-bold leading-tight text-[hsl(var(--foreground))] sm:block">
-                Narcoticos<br>
-                <span class="text-[hsl(var(--na-blue))]">Anonimos</span>
+            <p class="hidden text-sm font-bold leading-tight text-[hsl(var(--na-blue))] sm:block">
+                Narcóticos<br>
+                <span class="text-[hsl(var(--na-blue))]">Anônimos</span>
             </p>
         </div>
 
@@ -22,11 +22,11 @@
             </a>
             <a href="{{ route('virtual-meetings.index') }}" class="vm-nav-link">
                 <i class="fa-solid fa-video text-[0.72rem]" aria-hidden="true"></i>
-                Reunioes Online
+                Reuniões Online
             </a>
             <a href="https://www.na.org.br/grupos" target="_blank" rel="noopener noreferrer" class="vm-nav-link">
                 <i class="fa-solid fa-location-dot text-[0.72rem]" aria-hidden="true"></i>
-                Reunioes Presenciais
+                Reuniões Presenciais
             </a>
             <a href="https://www.na.org.br" target="_blank" rel="noopener noreferrer" class="vm-nav-link">
                 <i class="fa-solid fa-arrow-up-right-from-square text-[0.72rem]" aria-hidden="true"></i>
@@ -53,11 +53,11 @@
             </a>
             <a href="{{ route('virtual-meetings.index') }}" class="vm-nav-link">
                 <i class="fa-solid fa-video text-[0.72rem]" aria-hidden="true"></i>
-                Reunioes Online
+                Reuniões Online
             </a>
             <a href="https://www.na.org.br/grupos" target="_blank" rel="noopener noreferrer" class="vm-nav-link">
                 <i class="fa-solid fa-location-dot text-[0.72rem]" aria-hidden="true"></i>
-                Reunioes Presenciais
+                Reuniões Presenciais
             </a>
             <a href="https://www.na.org.br" target="_blank" rel="noopener noreferrer" class="vm-nav-link">
                 <i class="fa-solid fa-arrow-up-right-from-square text-[0.72rem]" aria-hidden="true"></i>

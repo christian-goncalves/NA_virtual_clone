@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\VirtualMeeting;
+use App\Support\SensitiveDataMasker;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -51,8 +52,10 @@ class NaVirtualMeetingSyncService
             ];
         } catch (Throwable $e) {
             $failedAt = now();
-            $this->markSyncFailure($failedAt, $e->getMessage());
-            $this->operationalAlertService->handleSyncFailure($e->getMessage(), $failedAt);
+            $sanitizedMessage = SensitiveDataMasker::sanitizeText($e->getMessage()) ?? 'Erro interno durante sincronizacao.';
+
+            $this->markSyncFailure($failedAt, $sanitizedMessage);
+            $this->operationalAlertService->handleSyncFailure($sanitizedMessage, $failedAt);
 
             throw $e;
         }
@@ -207,7 +210,7 @@ class NaVirtualMeetingSyncService
             } catch (Throwable $e) {
                 $parseErrors++;
                 Log::warning('Falha ao parsear grupo de reunião virtual.', [
-                    'message' => $e->getMessage(),
+                    'message' => SensitiveDataMasker::sanitizeText($e->getMessage()),
                 ]);
             }
         });
@@ -864,7 +867,7 @@ class NaVirtualMeetingSyncService
 
         Log::warning('Sincronizacao de reunioes virtuais falhou; status de falha registrado.', [
             'failed_at' => $timestamp->toIso8601String(),
-            'message' => $message,
+            'message' => SensitiveDataMasker::sanitizeText($message),
         ]);
     }
 }

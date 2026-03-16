@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Services\NaVirtualMeetingSyncService;
+use App\Support\SensitiveDataMasker;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -28,11 +29,11 @@ class SyncNaVirtualMeetingsJob implements ShouldQueue
             Log::info('SyncNaVirtualMeetingsJob finalizado com sucesso.', $result);
         } catch (Throwable $e) {
             Log::error('SyncNaVirtualMeetingsJob falhou.', [
-                'message' => $e->getMessage(),
+                'exception_class' => $e::class,
+                'message' => SensitiveDataMasker::sanitizeText($e->getMessage()),
             ]);
 
             throw $e;
         }
     }
 }
-

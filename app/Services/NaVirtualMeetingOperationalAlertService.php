@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\SensitiveDataMasker;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -40,7 +41,7 @@ class NaVirtualMeetingOperationalAlertService
             'decision' => $decision,
         ];
 
-        $this->alertLogger()->info('Avaliacao de alerta operacional de queda de volume.', $context);
+        $this->alertLogger()->info('Avaliacao de alerta operacional de queda de volume.', SensitiveDataMasker::sanitizeContext($context));
 
         if ($shouldAlert) {
             $this->dispatchAlert(
@@ -70,10 +71,10 @@ class NaVirtualMeetingOperationalAlertService
             'drop_percentage' => null,
             'consecutive_failures' => $consecutiveFailures,
             'decision' => $decision,
-            'error_message' => $message,
+            'error_message' => SensitiveDataMasker::sanitizeText($message),
         ];
 
-        $this->alertLogger()->warning('Avaliacao de alerta operacional por falhas consecutivas.', $context);
+        $this->alertLogger()->warning('Avaliacao de alerta operacional por falhas consecutivas.', SensitiveDataMasker::sanitizeContext($context));
 
         if ($shouldAlert) {
             $this->dispatchAlert(
@@ -86,11 +87,11 @@ class NaVirtualMeetingOperationalAlertService
 
     private function dispatchAlert(string $type, string $message, array $context): void
     {
-        $payload = [
+        $payload = SensitiveDataMasker::sanitizeContext([
             'type' => $type,
             'message' => $message,
             ...$context,
-        ];
+        ]);
 
         $this->alertLogger()->critical($message, $payload);
 
@@ -104,8 +105,8 @@ class NaVirtualMeetingOperationalAlertService
         } catch (Throwable $e) {
             $this->alertLogger()->error('Falha ao enviar alerta operacional para webhook.', [
                 'type' => $type,
-                'message' => $e->getMessage(),
-                'webhook_url' => $webhookUrl,
+                'message' => SensitiveDataMasker::sanitizeText($e->getMessage()),
+                'webhook_host' => parse_url($webhookUrl, PHP_URL_HOST),
             ]);
         }
     }
@@ -153,4 +154,3 @@ class NaVirtualMeetingOperationalAlertService
         }
     }
 }
-
