@@ -82,7 +82,7 @@ class NaVirtualMeetingGroupingService
         }
 
         return [
-            'running' => $running->sortBy('end_at')->values(),
+            'running' => $running->sortByDesc('start_at')->values(),
             'startingSoon' => $startingSoon->sortBy('start_at')->values(),
             'upcoming' => $upcoming->sortBy('start_at')->values(),
         ];
@@ -262,3 +262,4 @@ class NaVirtualMeetingGroupingService
         return "{$hours}h {$remainingMinutes}min";
     }
 }
+
