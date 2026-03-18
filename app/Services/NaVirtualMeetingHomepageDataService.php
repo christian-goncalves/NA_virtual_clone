@@ -29,6 +29,10 @@ class NaVirtualMeetingHomepageDataService
                 'last_failure_at' => optional($this->resolveLastFailureSyncAt())?->toIso8601String(),
             ]);
 
+            // Keep snapshot data, but always expose current server time so the header clock
+            // and time-based labels do not appear frozen during fallback windows.
+            $snapshotData['serverTime'] = now();
+
             return $snapshotData;
         }
 
