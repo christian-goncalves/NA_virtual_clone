@@ -24,9 +24,8 @@
     @else
         <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             @foreach ($runningMeetings as $meetingData)
-                @include('virtual-meetings.partials.meeting-card', ['meetingData' => $meetingData])
+                @include('virtual-meetings.partials.meeting-card', ['meetingData' => $meetingData, 'sourceSection' => 'running'])
             @endforeach
         </div>
     @endif
 </div>
-

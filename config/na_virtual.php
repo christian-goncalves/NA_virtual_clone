@@ -47,5 +47,13 @@ return [
         'min_active_base_for_volume_alert' => (int) env('NA_VIRTUAL_ALERTS_MIN_ACTIVE_BASE_FOR_VOLUME_ALERT', 50),
         'webhook_url' => env('NA_VIRTUAL_ALERTS_WEBHOOK_URL', ''),
     ],
+    'metrics' => [
+        'enabled' => (bool) env('NA_VIRTUAL_METRICS_ENABLED', true),
+        'dashboard_cache_ttl_seconds' => (int) env('NA_VIRTUAL_METRICS_DASHBOARD_CACHE_TTL_SECONDS', 30),
+        'admin_emails' => array_values(array_filter(array_map('trim', explode(',', (string) env('NA_VIRTUAL_METRICS_ADMIN_EMAILS', ''))))),
+        'events' => [
+            'user_agent_max_length' => (int) env('NA_VIRTUAL_METRICS_USER_AGENT_MAX_LENGTH', 255),
+        ],
+    ],
 ];
 

@@ -2,12 +2,14 @@
 
 namespace App\Services;
 
+use App\Models\MetricSyncRun;
 use App\Models\VirtualMeeting;
 use App\Support\SensitiveDataMasker;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use RuntimeException;
 use Symfony\Component\DomCrawler\Crawler;
@@ -31,8 +33,10 @@ class NaVirtualMeetingSyncService
      */
     public function sync(): array
     {
+        $syncedAt = now();
+        $run = $this->beginSyncRun($syncedAt);
+
         try {
-            $syncedAt = now();
             $payload = $this->downloadMeetingsPayload();
             $meetings = $this->parseMeetings($payload);
 
@@ -45,6 +49,7 @@ class NaVirtualMeetingSyncService
             $this->markSyncSuccess($syncedAt);
             $this->operationalAlertService->handleSyncSuccess($result, $syncedAt);
             $this->invalidateHomepageCache();
+            $this->finishSyncRunSuccess($run, $syncedAt, $result);
 
             return [
                 ...$result,
@@ -56,6 +61,7 @@ class NaVirtualMeetingSyncService
 
             $this->markSyncFailure($failedAt, $sanitizedMessage);
             $this->operationalAlertService->handleSyncFailure($sanitizedMessage, $failedAt);
+            $this->finishSyncRunFailure($run, $syncedAt, $failedAt, $sanitizedMessage);
 
             throw $e;
         }
@@ -869,5 +875,53 @@ class NaVirtualMeetingSyncService
             'failed_at' => $timestamp->toIso8601String(),
             'message' => SensitiveDataMasker::sanitizeText($message),
         ]);
+    }
+    private function beginSyncRun(Carbon $startedAt): ?MetricSyncRun
+    {
+        if (! Schema::hasTable('metric_sync_runs')) {
+            return null;
+        }
+
+        return MetricSyncRun::query()->create([
+            'started_at' => $startedAt,
+            'status' => 'running',
+            'source_url' => self::SOURCE_URL,
+        ]);
+    }
+
+    /**
+     * @param  array<string, int|string>  $result
+     */
+    private function finishSyncRunSuccess(?MetricSyncRun $run, Carbon $startedAt, array $result): void
+    {
+        if ($run === null) {
+            return;
+        }
+
+        $finishedAt = now();
+
+        $run->forceFill([
+            'finished_at' => $finishedAt,
+            'duration_ms' => $startedAt->diffInMilliseconds($finishedAt),
+            'status' => 'success',
+            'meetings_found' => (int) ($result['total_found'] ?? 0),
+            'meetings_saved' => (int) ($result['total_created'] ?? 0),
+            'meetings_updated' => (int) ($result['total_updated'] ?? 0),
+            'meetings_inactivated' => (int) ($result['total_inactivated'] ?? 0),
+        ])->save();
+    }
+
+    private function finishSyncRunFailure(?MetricSyncRun $run, Carbon $startedAt, Carbon $failedAt, string $message): void
+    {
+        if ($run === null) {
+            return;
+        }
+
+        $run->forceFill([
+            'finished_at' => $failedAt,
+            'duration_ms' => $startedAt->diffInMilliseconds($failedAt),
+            'status' => 'failed',
+            'error_message' => $message,
+        ])->save();
     }
 }

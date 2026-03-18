@@ -14,6 +14,7 @@
     $isStudyMeeting = (bool) data_get($meeting, 'is_study', false);
     $isOpenMeeting = (bool) data_get($meeting, 'is_open', false);
     $timeRange = ($startAt ? $startAt->format('H:i') : '--:--') . ' - ' . ($endAt ? $endAt->format('H:i') : '--:--');
+    $sourceSection = isset($sourceSection) && is_string($sourceSection) ? $sourceSection : 'unknown';
 
     $normalizedType = is_string($typeLabel) ? Str::lower(Str::ascii($typeLabel)) : '';
     $normalizedFormats = collect($formatLabels)
@@ -54,7 +55,16 @@
     <div class="vm-meeting-row-actions shrink-0">
         <span class="vm-status vm-status-truncate truncate">{{ $statusText ?: 'Horario a confirmar' }}</span>
         @if ($meetingUrl)
-            <a href="{{ $meetingUrl }}" target="_blank" rel="noopener noreferrer" class="vm-btn vm-btn-primary min-w-[7.25rem]">
+            <a
+                href="{{ $meetingUrl }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="vm-btn vm-btn-primary min-w-[7.25rem]"
+                data-metrics-event="category_click"
+                data-source-section="{{ $sourceSection }}"
+                data-meeting-name="{{ $name }}"
+                data-metrics-route="{{ request()->path() }}"
+            >
                 <i class="fa-solid fa-arrow-right-to-bracket text-[0.72rem]" aria-hidden="true"></i>
                 Entrar
             </a>
@@ -63,4 +73,3 @@
         @endif
     </div>
 </article>
-

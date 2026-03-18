@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0046A3">
-    <title>NA Virtual - Reunioes</title>
+    <title>NA Virtual - Reunioes Virtuais</title>
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
     <link rel="apple-touch-icon" href="{{ asset('favicon.ico') }}">
@@ -26,3 +26,4 @@
     </div>
 </body>
 </html>
+

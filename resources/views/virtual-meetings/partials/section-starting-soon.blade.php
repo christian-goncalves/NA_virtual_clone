@@ -24,9 +24,8 @@
     @else
         <div class="space-y-3">
             @foreach ($startingSoonMeetings as $meetingData)
-                @include('virtual-meetings.partials.meeting-row', ['meetingData' => $meetingData])
+                @include('virtual-meetings.partials.meeting-row', ['meetingData' => $meetingData, 'sourceSection' => 'starting_soon'])
             @endforeach
         </div>
     @endif
 </div>
-

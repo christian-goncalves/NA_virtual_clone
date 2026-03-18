@@ -52,13 +52,13 @@
     @else
         <div class="space-y-3">
             @foreach ($visibleUpcomingMeetings as $meetingData)
-                @include('virtual-meetings.partials.meeting-row', ['meetingData' => $meetingData])
+                @include('virtual-meetings.partials.meeting-row', ['meetingData' => $meetingData, 'sourceSection' => 'upcoming'])
             @endforeach
 
             @if ($hasMoreUpcoming)
                 <div id="upcoming-extra-list" class="hidden space-y-3" data-upcoming-extra>
                     @foreach ($extraUpcomingMeetings as $meetingData)
-                        @include('virtual-meetings.partials.meeting-row', ['meetingData' => $meetingData])
+                        @include('virtual-meetings.partials.meeting-row', ['meetingData' => $meetingData, 'sourceSection' => 'upcoming'])
                     @endforeach
 
                     <div class="pt-2 text-center">

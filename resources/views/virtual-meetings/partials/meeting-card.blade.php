@@ -45,7 +45,7 @@
         && $minutesFromStart >= 0
         && $minutesFromStart <= 15;
 
-    $runningBadgeText = $justStarted ? 'Começando Agora' : 'Em andamento';
+    $runningBadgeText = $justStarted ? 'Come?ando Agora' : 'Em andamento';
     $runningBadgeClass = $justStarted ? 'bg-[#ef4444] text-white' : 'vm-badge-status';
     $runningBadgeTextClass = $justStarted ? '' : 'uppercase tracking-wide';
     $cardToneClass = $justStarted
@@ -92,7 +92,8 @@
     if (is_string($displayMeetingPassword) && trim($displayMeetingPassword) !== '') {
         $metaParts[] = 'Senha: ' . trim($displayMeetingPassword);
     }
-    $metaLine = $metaParts !== [] ? implode(' · ', $metaParts) : 'Plataforma nao informada';
+    $metaLine = $metaParts !== [] ? implode(' ? ', $metaParts) : 'Plataforma nao informada';
+    $sourceSection = isset($sourceSection) && is_string($sourceSection) ? $sourceSection : 'running';
 
     $shareText = is_string($meetingUrl) && trim($meetingUrl) !== ''
         ? trim($meetingUrl)
@@ -131,7 +132,7 @@
 
     <div class="vm-card-actions mt-auto pt-1">
         @if ($meetingUrl)
-            <a href="{{ $meetingUrl }}" target="_blank" rel="noopener noreferrer" class="vm-btn vm-card-cta-main py-2.5 text-xs {{ $ctaClass }}">
+            <a href="{{ $meetingUrl }}" target="_blank" rel="noopener noreferrer" class="vm-btn vm-card-cta-main py-2.5 text-xs {{ $ctaClass }}" data-metrics-event="category_click" data-source-section="{{ $sourceSection }}" data-meeting-name="{{ $name }}" data-metrics-route="{{ request()->path() }}">
                 <i class="fa-solid fa-arrow-right-to-bracket text-[0.72rem]" aria-hidden="true"></i>
                 {{ $ctaLabel }}
             </a>
@@ -151,4 +152,8 @@
         </button>
     </div>
 </article>
+
+
+
+
 

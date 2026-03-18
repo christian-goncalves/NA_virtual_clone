@@ -82,6 +82,49 @@ function initMobileMenu() {
     });
 }
 
+function initMetricsTracking() {
+    const endpoint = '/api/metrics/event';
+
+    const sendEvent = (payload) => {
+        const body = JSON.stringify(payload);
+
+        if (navigator.sendBeacon) {
+            const blob = new Blob([body], { type: 'application/json' });
+            navigator.sendBeacon(endpoint, blob);
+            return;
+        }
+
+        fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body,
+            keepalive: true,
+        }).catch(() => {
+            // Ignore metric transport failures by design.
+        });
+    };
+
+    document.addEventListener('click', (event) => {
+        const target = event.target;
+        if (!(target instanceof Element)) return;
+
+        const clickable = target.closest('[data-metrics-event]');
+        if (!(clickable instanceof Element)) return;
+
+        sendEvent({
+            event_type: clickable.getAttribute('data-metrics-event') ?? 'category_click',
+            category: clickable.getAttribute('data-source-section') ?? 'unknown',
+            route: clickable.getAttribute('data-metrics-route') ?? window.location.pathname,
+            meeting_name: clickable.getAttribute('data-meeting-name') ?? null,
+            source_section: clickable.getAttribute('data-source-section') ?? null,
+        });
+    });
+}
+
 function initMeetingShare() {
     const shareButtons = document.querySelectorAll('[data-vm-share-button]');
     if (!shareButtons.length) return;
@@ -176,3 +219,5 @@ function initMeetingShare() {
 initLiveClock();
 initMobileMenu();
 initMeetingShare();
+initMetricsTracking();
+
