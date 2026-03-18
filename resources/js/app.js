@@ -4,16 +4,17 @@ function initLiveClock() {
     const clockNodes = document.querySelectorAll('[data-vm-live-clock]');
     if (!clockNodes.length) return;
 
-    let now = null;
     const firstNode = clockNodes[0];
     const serverIso = firstNode?.getAttribute('data-server-time');
+    const clientStartedAtMs = Date.now();
+    let serverStartedAtMs = clientStartedAtMs;
 
     if (serverIso) {
         const parsed = new Date(serverIso);
-        if (!Number.isNaN(parsed.getTime())) now = parsed;
+        if (!Number.isNaN(parsed.getTime())) {
+            serverStartedAtMs = parsed.getTime();
+        }
     }
-
-    if (!now) now = new Date();
 
     const formatter = new Intl.DateTimeFormat('pt-BR', {
         hour: '2-digit',
@@ -24,6 +25,8 @@ function initLiveClock() {
     });
 
     const render = () => {
+        const elapsedMs = Date.now() - clientStartedAtMs;
+        const now = new Date(serverStartedAtMs + elapsedMs);
         const value = formatter.format(now);
         clockNodes.forEach((node) => {
             node.textContent = value;
@@ -31,10 +34,8 @@ function initLiveClock() {
     };
 
     render();
-    window.setInterval(() => {
-        now = new Date(now.getTime() + 1000);
-        render();
-    }, 1000);
+    window.setInterval(render, 1000);
+    document.addEventListener('visibilitychange', render);
 }
 
 function initMobileMenu() {
