@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\IpUtils;
 use Symfony\Component\HttpFoundation\Response;
 
 class HardenMetricsAdminAccess
@@ -42,7 +43,15 @@ class HardenMetricsAdminAccess
             return false;
         }
 
-        return $allowlist->contains(trim($ip));
+        $normalizedIp = trim($ip);
+
+        return $allowlist->contains(function (string $rule) use ($normalizedIp): bool {
+            if (str_contains($rule, '/')) {
+                return IpUtils::checkIp($normalizedIp, $rule);
+            }
+
+            return $rule === $normalizedIp;
+        });
     }
 
     private function shouldRequireHttps(Request $request): bool

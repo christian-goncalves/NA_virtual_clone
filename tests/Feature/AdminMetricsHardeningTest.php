@@ -41,4 +41,30 @@ class AdminMetricsHardeningTest extends TestCase
         $this->assertStringContainsString('no-store', $cacheControl);
         $this->assertStringContainsString('no-cache', $cacheControl);
     }
+
+    public function test_admin_dashboard_allows_ip_from_cidr_allowlist(): void
+    {
+        config()->set('na_virtual.metrics.admin_emails', ['admin@example.com']);
+        config()->set('na_virtual.metrics.admin.ip_allowlist', ['10.0.0.0/8']);
+
+        $user = User::factory()->create(['email' => 'admin@example.com']);
+
+        $this->actingAs($user)
+            ->withServerVariables(['REMOTE_ADDR' => '10.1.2.3'])
+            ->get('/admin/metricas')
+            ->assertOk();
+    }
+
+    public function test_admin_dashboard_blocks_ip_outside_cidr_allowlist(): void
+    {
+        config()->set('na_virtual.metrics.admin_emails', ['admin@example.com']);
+        config()->set('na_virtual.metrics.admin.ip_allowlist', ['10.0.0.0/8']);
+
+        $user = User::factory()->create(['email' => 'admin@example.com']);
+
+        $this->actingAs($user)
+            ->withServerVariables(['REMOTE_ADDR' => '192.168.1.20'])
+            ->get('/admin/metricas')
+            ->assertStatus(403);
+    }
 }
