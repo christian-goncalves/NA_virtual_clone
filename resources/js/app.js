@@ -6,15 +6,26 @@ function initLiveClock() {
 
     const firstNode = clockNodes[0];
     const serverIso = firstNode?.getAttribute('data-server-time');
-    const clientStartedAtMs = Date.now();
+    let clientStartedAtMs = Date.now();
     let serverStartedAtMs = clientStartedAtMs;
 
-    if (serverIso) {
-        const parsed = new Date(serverIso);
-        if (!Number.isNaN(parsed.getTime())) {
-            serverStartedAtMs = parsed.getTime();
-        }
-    }
+    const applyServerIso = (isoValue) => {
+        if (!isoValue) return false;
+
+        const parsed = new Date(isoValue);
+        if (Number.isNaN(parsed.getTime())) return false;
+
+        clientStartedAtMs = Date.now();
+        serverStartedAtMs = parsed.getTime();
+
+        clockNodes.forEach((node) => {
+            node.setAttribute('data-server-time', parsed.toISOString());
+        });
+
+        return true;
+    };
+
+    applyServerIso(serverIso);
 
     const formatter = new Intl.DateTimeFormat('pt-BR', {
         hour: '2-digit',
@@ -33,9 +44,51 @@ function initLiveClock() {
         });
     };
 
+    const syncFromServer = async () => {
+        try {
+            const response = await fetch(`/api/server-time?ts=${Date.now()}`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                cache: 'no-store',
+            });
+
+            if (!response.ok) return;
+
+            const payload = await response.json();
+            if (applyServerIso(payload?.serverTime)) {
+                render();
+            }
+        } catch {
+            // Ignore network failures and keep local ticking fallback.
+        }
+    };
+
     render();
     window.setInterval(render, 1000);
-    document.addEventListener('visibilitychange', render);
+    window.setInterval(() => {
+        void syncFromServer();
+    }, 60000);
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            void syncFromServer();
+            return;
+        }
+
+        render();
+    });
+
+    window.addEventListener('focus', () => {
+        void syncFromServer();
+    });
+
+    window.addEventListener('pageshow', () => {
+        void syncFromServer();
+    });
+
+    void syncFromServer();
 }
 
 function initMobileMenu() {

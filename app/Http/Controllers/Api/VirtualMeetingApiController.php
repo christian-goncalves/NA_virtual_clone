@@ -17,6 +17,13 @@ class VirtualMeetingApiController extends Controller
         return response()->json($this->normalizePayload($data));
     }
 
+    public function serverTime(): JsonResponse
+    {
+        return response()->json([
+            'serverTime' => now()->toIso8601String(),
+        ]);
+    }
+
     /**
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>

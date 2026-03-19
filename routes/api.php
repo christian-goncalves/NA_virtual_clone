@@ -9,6 +9,9 @@ Route::middleware('throttle:api-public')->group(function (): void {
         ->middleware('track.vm.request_metric')
         ->name('virtual-meetings.api.index');
 
+    Route::get('/server-time', [VirtualMeetingApiController::class, 'serverTime'])
+        ->name('virtual-meetings.api.server-time');
+
     Route::post('/metrics/event', [MetricsEventController::class, 'store'])
         ->name('metrics.events.store');
 });

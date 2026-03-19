@@ -209,6 +209,22 @@ class VirtualMeetingApiControllerTest extends TestCase
             ->assertJsonPath('runningMeetings.0.meeting.name', 'Grupo Snapshot API')
             ->assertJsonPath('groupedBadges.aberta', 'público em geral');
     }
+
+
+    public function test_server_time_endpoint_returns_iso8601_payload(): void
+    {
+        $response = $this->getJson('/api/server-time');
+
+        $response
+            ->assertOk()
+            ->assertJsonStructure(['serverTime']);
+
+        $serverTime = (string) $response->json('serverTime');
+
+        $this->assertNotSame('', $serverTime);
+        $this->assertNotNull(Carbon::parse($serverTime));
+    }
+
     public function test_api_applies_public_rate_limit(): void
     {
         config()->set('na_virtual.rate_limit.api_public_per_minute', 2);
