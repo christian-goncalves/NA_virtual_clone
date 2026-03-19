@@ -1,4 +1,5 @@
 @php
+    use App\Support\VirtualMeetingMetaFormatter;
     use Illuminate\Support\Carbon;
     use Illuminate\Support\Str;
 
@@ -45,7 +46,7 @@
         && $minutesFromStart >= 0
         && $minutesFromStart <= 15;
 
-    $runningBadgeText = $justStarted ? 'Come?ando Agora' : 'Em andamento';
+    $runningBadgeText = $justStarted ? 'Começando Agora' : 'Em andamento';
     $runningBadgeClass = $justStarted ? 'bg-[#ef4444] text-white' : 'vm-badge-status';
     $runningBadgeTextClass = $justStarted ? '' : 'uppercase tracking-wide';
     $cardToneClass = $justStarted
@@ -82,17 +83,7 @@
         ? 'vm-status-warning'
         : 'vm-status-neutral';
 
-    $metaParts = [];
-    if (is_string($platform) && trim($platform) !== '') {
-        $metaParts[] = ucfirst($platform);
-    }
-    if (is_string($displayMeetingId) && trim($displayMeetingId) !== '') {
-        $metaParts[] = 'ID: ' . trim($displayMeetingId);
-    }
-    if (is_string($displayMeetingPassword) && trim($displayMeetingPassword) !== '') {
-        $metaParts[] = 'Senha: ' . trim($displayMeetingPassword);
-    }
-    $metaLine = $metaParts !== [] ? implode(' ? ', $metaParts) : 'Plataforma nao informada';
+    $metaLine = VirtualMeetingMetaFormatter::buildMetaLine($meetingData);
     $sourceSection = isset($sourceSection) && is_string($sourceSection) ? $sourceSection : 'running';
 
     $shareText = is_string($meetingUrl) && trim($meetingUrl) !== ''
@@ -152,8 +143,3 @@
         </button>
     </div>
 </article>
-
-
-
-
-

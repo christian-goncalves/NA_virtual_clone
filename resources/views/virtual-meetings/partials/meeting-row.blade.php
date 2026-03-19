@@ -1,4 +1,5 @@
 @php
+    use App\Support\VirtualMeetingMetaFormatter;
     use Illuminate\Support\Str;
 
     $meeting = data_get($meetingData, 'meeting');
@@ -7,7 +8,6 @@
     $statusText = data_get($meetingData, 'status_text');
 
     $name = $meeting?->name ?: 'Grupo sem nome';
-    $platform = $meeting?->meeting_platform ?: 'Plataforma nao informada';
     $meetingUrl = $meeting?->meeting_url;
     $typeLabel = $meeting?->type_label;
     $formatLabels = is_array($meeting?->format_labels) ? $meeting->format_labels : [];
@@ -38,13 +38,15 @@
         $typeBadgeClass = 'vm-badge-type-closed';
         $typeBadgeLabel = 'Fechada';
     }
+
+    $metaLine = VirtualMeetingMetaFormatter::buildMetaLine($meetingData);
 @endphp
 
 <article class="vm-card-shell vm-meeting-row">
     <div class="min-w-0 flex-1">
         <p class="vm-time">{{ $timeRange }}</p>
         <h4 class="vm-title vm-title-clamp-2 mt-1">{{ $name }}</h4>
-        <p class="vm-meta mt-1">{{ ucfirst($platform) }}</p>
+        <p class="vm-meta mt-1">{{ $metaLine }}</p>
         <div class="mt-2 flex flex-wrap items-center gap-2">
             @if ($typeBadgeLabel)
                 @include('virtual-meetings.partials.type-badge', ['badgeClass' => $typeBadgeClass, 'badgeLabel' => $typeBadgeLabel, 'badgeDescription' => '', 'badgeDescriptionExplicit' => false])

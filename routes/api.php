@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\MetricsApiController;
 use App\Http\Controllers\Api\MetricsEventController;
 use App\Http\Controllers\Api\VirtualMeetingApiController;
 use Illuminate\Support\Facades\Route;
@@ -15,3 +16,10 @@ Route::middleware('throttle:api-public')->group(function (): void {
     Route::post('/metrics/event', [MetricsEventController::class, 'store'])
         ->name('metrics.events.store');
 });
+
+Route::middleware(['auth.basic', 'is_admin', 'harden.metrics.admin'])->group(function (): void {
+    Route::get('/admin/metricas', [MetricsApiController::class, 'index'])
+        ->name('admin.metrics.api.index');
+});
+
+

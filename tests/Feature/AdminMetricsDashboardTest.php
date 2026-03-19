@@ -68,6 +68,15 @@ class AdminMetricsDashboardTest extends TestCase
             'source_url' => 'https://www.na.org.br/virtual/',
         ]);
 
+        MetricSyncRun::query()->create([
+            'started_at' => now()->subMinutes(20),
+            'finished_at' => now()->subMinutes(19),
+            'duration_ms' => 900,
+            'status' => 'failed',
+            'error_message' => 'erro de teste',
+            'source_url' => 'https://www.na.org.br/virtual/',
+        ]);
+
         MetricRequestMetric::query()->create([
             'occurred_at' => now()->subMinutes(20),
             'route' => 'reunioes-virtuais',
@@ -93,6 +102,8 @@ class AdminMetricsDashboardTest extends TestCase
             ->assertOk()
             ->assertSeeText('Dashboard de Metricas')
             ->assertSeeText('Acessos hoje')
+            ->assertSeeText('Disponibilidade por faixa (24h)')
+            ->assertSeeText('Sucesso x falha de sync (24h)')
             ->assertSeeText('Latencia media 24h')
             ->assertSeeText('Top rotas lentas')
             ->assertSeeText('Ultimas sincronizacoes');

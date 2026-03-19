@@ -31,6 +31,9 @@ class NaVirtualMeetingMetricsService
                 'p95Latency24h' => $this->p95Latency24h(),
                 'hourlyAccesses' => $this->hourlyAccesses(),
                 'categoryClicks' => $this->categoryClicks(),
+                'availabilityByHour' => $this->availabilityByHour(),
+                'syncStatusByHour' => $this->syncStatusByHour(),
+                'syncStatusTotals24h' => $this->syncStatusTotals24h(),
                 'latencyByHour' => $this->latencyByHour(),
                 'topSlowRoutes' => $this->topSlowRoutes(),
                 'recentSyncRuns' => $this->recentSyncRuns(),
@@ -190,6 +193,83 @@ class NaVirtualMeetingMetricsService
                 'total' => (int) $row->total,
             ])
             ->all();
+    }
+
+    /**
+     * @return list<array{label: string, running: int, within_1h: int, within_6h: int}>
+     */
+    private function availabilityByHour(): array
+    {
+        if (! $this->tableExists('metric_meeting_snapshots')) {
+            return [];
+        }
+
+        return MetricMeetingSnapshot::query()
+            ->where('measured_at', '>=', now()->subDay())
+            ->orderBy('measured_at')
+            ->get(['measured_at', 'in_progress_count', 'within_1h_count', 'within_6h_count'])
+            ->groupBy(fn (MetricMeetingSnapshot $row): string => optional($row->measured_at)?->format('Y-m-d H:00') ?? 'sem_data')
+            ->map(function (Collection $items, string $label): array {
+                $count = max(1, $items->count());
+
+                return [
+                    'label' => $label,
+                    'running' => (int) round($items->sum('in_progress_count') / $count),
+                    'within_1h' => (int) round($items->sum('within_1h_count') / $count),
+                    'within_6h' => (int) round($items->sum('within_6h_count') / $count),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{label: string, success: int, failed: int}>
+     */
+    private function syncStatusByHour(): array
+    {
+        if (! $this->tableExists('metric_sync_runs')) {
+            return [];
+        }
+
+        return MetricSyncRun::query()
+            ->where('started_at', '>=', now()->subDay())
+            ->orderBy('started_at')
+            ->get(['started_at', 'status'])
+            ->groupBy(fn (MetricSyncRun $row): string => optional($row->started_at)?->format('Y-m-d H:00') ?? 'sem_data')
+            ->map(function (Collection $items, string $label): array {
+                return [
+                    'label' => $label,
+                    'success' => $items->where('status', 'success')->count(),
+                    'failed' => $items->where('status', 'failed')->count(),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array{success: int, failed: int}
+     */
+    private function syncStatusTotals24h(): array
+    {
+        if (! $this->tableExists('metric_sync_runs')) {
+            return [
+                'success' => 0,
+                'failed' => 0,
+            ];
+        }
+
+        return [
+            'success' => MetricSyncRun::query()
+                ->where('started_at', '>=', now()->subDay())
+                ->where('status', 'success')
+                ->count(),
+            'failed' => MetricSyncRun::query()
+                ->where('started_at', '>=', now()->subDay())
+                ->where('status', 'failed')
+                ->count(),
+        ];
     }
 
     /**
