@@ -12,7 +12,7 @@ Route::middleware(['throttle:web-public', 'track.vm.pageview', 'track.vm.request
         ->name('virtual-meetings.list');
 });
 
-Route::middleware(['auth.basic', 'is_admin'])->group(function (): void {
+Route::middleware(['auth.basic', 'is_admin', 'harden.metrics.admin'])->group(function (): void {
     Route::get('/admin/metricas', [MetricsDashboardController::class, 'index'])
         ->name('admin.metrics.index');
 });

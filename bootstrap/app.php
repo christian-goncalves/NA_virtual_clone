@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureAdminUser;
+use App\Http\Middleware\HardenMetricsAdminAccess;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\TrackVirtualMeetingsPageView;
 use App\Http\Middleware\TrackVirtualMeetingsRequestMetric;
@@ -21,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'track.vm.pageview' => TrackVirtualMeetingsPageView::class,
             'track.vm.request_metric' => TrackVirtualMeetingsRequestMetric::class,
+            'harden.metrics.admin' => HardenMetricsAdminAccess::class,
             'is_admin' => EnsureAdminUser::class,
         ]);
     })

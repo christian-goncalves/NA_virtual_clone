@@ -1,6 +1,8 @@
 <?php
 
 use App\Services\NaVirtualMeetingMetricsIngestionService;
+use App\Services\NaVirtualMeetingMetricsOperationalAlertService;
+use App\Services\NaVirtualMeetingMetricsRetentionService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -24,3 +26,15 @@ Schedule::call(function (NaVirtualMeetingMetricsIngestionService $ingestionServi
 })
     ->name('consolidate-na-virtual-hourly-metrics')
     ->everyTenMinutes();
+
+Schedule::call(function (NaVirtualMeetingMetricsOperationalAlertService $alertService): void {
+    $alertService->evaluateHealth();
+})
+    ->name('evaluate-na-virtual-metrics-health-alerts')
+    ->everyFiveMinutes();
+
+Schedule::call(function (NaVirtualMeetingMetricsRetentionService $retentionService): void {
+    $retentionService->prune();
+})
+    ->name('prune-na-virtual-metrics-retention')
+    ->dailyAt('03:00');
