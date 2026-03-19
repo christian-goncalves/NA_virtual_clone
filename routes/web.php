@@ -4,7 +4,7 @@ use App\Http\Controllers\Admin\MetricsDashboardController;
 use App\Http\Controllers\VirtualMeetingController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['throttle:web-public', 'track.vm.pageview'])->group(function (): void {
+Route::middleware(['throttle:web-public', 'track.vm.pageview', 'track.vm.request_metric'])->group(function (): void {
     Route::get('/', [VirtualMeetingController::class, 'index'])
         ->name('virtual-meetings.index');
 

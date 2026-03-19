@@ -18,3 +18,9 @@ Schedule::call(function (NaVirtualMeetingMetricsIngestionService $ingestionServi
 })
     ->name('capture-na-virtual-metrics-snapshot')
     ->everyFiveMinutes();
+
+Schedule::call(function (NaVirtualMeetingMetricsIngestionService $ingestionService): void {
+    $ingestionService->consolidateHourlyAggregates();
+})
+    ->name('consolidate-na-virtual-hourly-metrics')
+    ->everyTenMinutes();

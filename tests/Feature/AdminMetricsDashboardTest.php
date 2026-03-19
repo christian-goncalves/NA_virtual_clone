@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\MetricMeetingSnapshot;
 use App\Models\MetricPageView;
+use App\Models\MetricRequestMetric;
 use App\Models\MetricSyncRun;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -67,11 +68,33 @@ class AdminMetricsDashboardTest extends TestCase
             'source_url' => 'https://www.na.org.br/virtual/',
         ]);
 
+        MetricRequestMetric::query()->create([
+            'occurred_at' => now()->subMinutes(20),
+            'route' => 'reunioes-virtuais',
+            'http_method' => 'GET',
+            'status_code' => 200,
+            'duration_ms' => 150,
+            'session_hash' => 's1',
+            'ip_hash' => 'i1',
+        ]);
+
+        MetricRequestMetric::query()->create([
+            'occurred_at' => now()->subMinutes(15),
+            'route' => 'reunioes-virtuais',
+            'http_method' => 'GET',
+            'status_code' => 200,
+            'duration_ms' => 450,
+            'session_hash' => 's2',
+            'ip_hash' => 'i2',
+        ]);
+
         $this->actingAs($user)
             ->get('/admin/metricas')
             ->assertOk()
             ->assertSeeText('Dashboard de Metricas')
             ->assertSeeText('Acessos hoje')
+            ->assertSeeText('Latencia media 24h')
+            ->assertSeeText('Top rotas lentas')
             ->assertSeeText('Ultimas sincronizacoes');
     }
 }

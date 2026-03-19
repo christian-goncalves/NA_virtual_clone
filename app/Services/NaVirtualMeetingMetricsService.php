@@ -2,9 +2,12 @@
 
 namespace App\Services;
 
+use App\Models\MetricHourlyAggregate;
 use App\Models\MetricMeetingSnapshot;
 use App\Models\MetricPageView;
+use App\Models\MetricRequestMetric;
 use App\Models\MetricSyncRun;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 
@@ -24,8 +27,12 @@ class NaVirtualMeetingMetricsService
                 'runningNow' => $this->runningNow(),
                 'lastSyncRun' => $this->lastSyncRun(),
                 'syncSuccessRate24h' => $this->syncSuccessRate24h(),
+                'averageLatency24h' => $this->averageLatency24h(),
+                'p95Latency24h' => $this->p95Latency24h(),
                 'hourlyAccesses' => $this->hourlyAccesses(),
                 'categoryClicks' => $this->categoryClicks(),
+                'latencyByHour' => $this->latencyByHour(),
+                'topSlowRoutes' => $this->topSlowRoutes(),
                 'recentSyncRuns' => $this->recentSyncRuns(),
             ];
         });
@@ -108,6 +115,36 @@ class NaVirtualMeetingMetricsService
         return round(($success / $total) * 100, 2);
     }
 
+    private function averageLatency24h(): float
+    {
+        if (! $this->tableExists('metric_request_metrics')) {
+            return 0.0;
+        }
+
+        $average = MetricRequestMetric::query()
+            ->where('occurred_at', '>=', now()->subDay())
+            ->avg('duration_ms');
+
+        return round((float) ($average ?? 0), 2);
+    }
+
+    private function p95Latency24h(): int
+    {
+        if (! $this->tableExists('metric_request_metrics')) {
+            return 0;
+        }
+
+        $durations = MetricRequestMetric::query()
+            ->where('occurred_at', '>=', now()->subDay())
+            ->orderBy('duration_ms')
+            ->pluck('duration_ms')
+            ->map(fn ($value): int => (int) $value)
+            ->values()
+            ->all();
+
+        return $this->percentile($durations, 95);
+    }
+
     /**
      * @return list<array{label: string, total: int}>
      */
@@ -156,6 +193,90 @@ class NaVirtualMeetingMetricsService
     }
 
     /**
+     * @return list<array{label: string, avg_ms: int, p95_ms: int}>
+     */
+    private function latencyByHour(): array
+    {
+        if ($this->tableExists('metric_hourly_aggregates')) {
+            $rows = MetricHourlyAggregate::query()
+                ->where('metric_key', 'request_latency')
+                ->where('hour_bucket', '>=', now()->subDay()->startOfHour())
+                ->orderBy('hour_bucket')
+                ->get(['hour_bucket', 'avg_duration_ms', 'p95_duration_ms']);
+
+            if ($rows->isNotEmpty()) {
+                return $rows
+                    ->groupBy(fn (MetricHourlyAggregate $row): string => optional($row->hour_bucket)?->format('Y-m-d H:00') ?? 'sem_data')
+                    ->map(function (Collection $items, string $label): array {
+                        $avgValues = $items->pluck('avg_duration_ms')->filter(fn ($value): bool => $value !== null)->map(fn ($value): int => (int) $value)->all();
+                        $p95Values = $items->pluck('p95_duration_ms')->filter(fn ($value): bool => $value !== null)->map(fn ($value): int => (int) $value)->all();
+
+                        return [
+                            'label' => $label,
+                            'avg_ms' => $avgValues !== [] ? (int) round(array_sum($avgValues) / count($avgValues)) : 0,
+                            'p95_ms' => $p95Values !== [] ? max($p95Values) : 0,
+                        ];
+                    })
+                    ->values()
+                    ->all();
+            }
+        }
+
+        if (! $this->tableExists('metric_request_metrics')) {
+            return [];
+        }
+
+        return MetricRequestMetric::query()
+            ->where('occurred_at', '>=', now()->subDay())
+            ->orderBy('occurred_at')
+            ->get(['occurred_at', 'duration_ms'])
+            ->groupBy(fn (MetricRequestMetric $row): string => optional($row->occurred_at)?->format('Y-m-d H:00') ?? 'sem_data')
+            ->map(function (Collection $rows, string $label): array {
+                $durations = $rows->pluck('duration_ms')->map(fn ($value): int => (int) $value)->sort()->values()->all();
+                $count = count($durations);
+
+                return [
+                    'label' => $label,
+                    'avg_ms' => $count > 0 ? (int) round(array_sum($durations) / $count) : 0,
+                    'p95_ms' => $this->percentile($durations, 95),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{route: string, avg_ms: int, p95_ms: int, total: int}>
+     */
+    private function topSlowRoutes(): array
+    {
+        if (! $this->tableExists('metric_request_metrics')) {
+            return [];
+        }
+
+        return MetricRequestMetric::query()
+            ->where('occurred_at', '>=', now()->subDay())
+            ->orderBy('occurred_at')
+            ->get(['route', 'duration_ms'])
+            ->groupBy(fn (MetricRequestMetric $row): string => $row->route ?: '/')
+            ->map(function (Collection $rows, string $route): array {
+                $durations = $rows->pluck('duration_ms')->map(fn ($value): int => (int) $value)->sort()->values()->all();
+                $total = count($durations);
+
+                return [
+                    'route' => $route,
+                    'avg_ms' => $total > 0 ? (int) round(array_sum($durations) / $total) : 0,
+                    'p95_ms' => $this->percentile($durations, 95),
+                    'total' => $total,
+                ];
+            })
+            ->sortByDesc('p95_ms')
+            ->take(5)
+            ->values()
+            ->all();
+    }
+
+    /**
      * @return list<array<string, mixed>>
      */
     private function recentSyncRuns(): array
@@ -176,6 +297,23 @@ class NaVirtualMeetingMetricsService
                 'error_message' => $run->error_message,
             ])
             ->all();
+    }
+
+    /**
+     * @param  list<int>  $sortedValues
+     */
+    private function percentile(array $sortedValues, int $percentile): int
+    {
+        $count = count($sortedValues);
+        if ($count === 0) {
+            return 0;
+        }
+
+        $percentile = max(1, min(100, $percentile));
+        $position = (int) ceil(($percentile / 100) * $count) - 1;
+        $index = max(0, min($count - 1, $position));
+
+        return (int) ($sortedValues[$index] ?? 0);
     }
 
     private function tableExists(string $table): bool

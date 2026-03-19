@@ -3,6 +3,7 @@
 use App\Http\Middleware\EnsureAdminUser;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\TrackVirtualMeetingsPageView;
+use App\Http\Middleware\TrackVirtualMeetingsRequestMetric;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'track.vm.pageview' => TrackVirtualMeetingsPageView::class,
+            'track.vm.request_metric' => TrackVirtualMeetingsRequestMetric::class,
             'is_admin' => EnsureAdminUser::class,
         ]);
     })

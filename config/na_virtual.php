@@ -54,6 +54,12 @@ return [
         'events' => [
             'user_agent_max_length' => (int) env('NA_VIRTUAL_METRICS_USER_AGENT_MAX_LENGTH', 255),
         ],
+        'request_metrics' => [
+            'enabled' => (bool) env('NA_VIRTUAL_REQUEST_METRICS_ENABLED', true),
+        ],
+        'hourly_aggregates' => [
+            'hours_back' => (int) env('NA_VIRTUAL_METRICS_HOURLY_AGGREGATES_HOURS_BACK', 48),
+        ],
     ],
 ];
 
