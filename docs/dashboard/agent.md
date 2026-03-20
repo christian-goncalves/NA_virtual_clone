@@ -5,8 +5,9 @@ Agente de implementacao Laravel 12 para evolucao do dashboard de metricas intern
 
 ## Fontes obrigatorias antes de executar
 1. `docs/dashboard/pattern.md`
-2. `docs/dashboard/plan.md`
+2. `docs/dashboard/roadmap.md`
 3. `docs/dashboard/operations.md`
+4. `docs/dashboard/qa-go-no-go.md`
 
 ## Regras obrigatorias
 1. Controllers finos; negocio em Services.
@@ -33,4 +34,4 @@ Agente de implementacao Laravel 12 para evolucao do dashboard de metricas intern
 5) Entrega (arquivos alterados, pendencias, proximo passo)
 
 ## Comando de invocacao recomendado
-`Execute a etapa alvo do docs/dashboard/plan.md seguindo docs/dashboard/pattern.md e este contrato docs/dashboard/agent.md. Implemente end-to-end com validacoes obrigatorias e relatorio final padronizado.`
+`Execute a etapa alvo do docs/dashboard/roadmap.md seguindo docs/dashboard/pattern.md e este contrato docs/dashboard/agent.md. Implemente end-to-end com validacoes obrigatorias e relatorio final padronizado.`

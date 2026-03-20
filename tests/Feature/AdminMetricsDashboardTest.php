@@ -7,6 +7,7 @@ use App\Models\MetricPageView;
 use App\Models\MetricRequestMetric;
 use App\Models\MetricSyncRun;
 use App\Models\User;
+use App\Models\VirtualMeeting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
@@ -32,7 +33,7 @@ class AdminMetricsDashboardTest extends TestCase
             ->assertStatus(403);
     }
 
-    public function test_dashboard_renders_kpis_for_admin(): void
+    public function test_dashboard_renders_kpis_and_datatable_shell_for_admin(): void
     {
         config()->set('na_virtual.metrics.admin_emails', ['admin@example.com']);
 
@@ -68,15 +69,6 @@ class AdminMetricsDashboardTest extends TestCase
             'source_url' => 'https://www.na.org.br/virtual/',
         ]);
 
-        MetricSyncRun::query()->create([
-            'started_at' => now()->subMinutes(20),
-            'finished_at' => now()->subMinutes(19),
-            'duration_ms' => 900,
-            'status' => 'failed',
-            'error_message' => 'erro de teste',
-            'source_url' => 'https://www.na.org.br/virtual/',
-        ]);
-
         MetricRequestMetric::query()->create([
             'occurred_at' => now()->subMinutes(20),
             'route' => 'reunioes-virtuais',
@@ -87,14 +79,20 @@ class AdminMetricsDashboardTest extends TestCase
             'ip_hash' => 'i1',
         ]);
 
-        MetricRequestMetric::query()->create([
-            'occurred_at' => now()->subMinutes(15),
-            'route' => 'reunioes-virtuais',
-            'http_method' => 'GET',
-            'status_code' => 200,
-            'duration_ms' => 450,
-            'session_hash' => 's2',
-            'ip_hash' => 'i2',
+        VirtualMeeting::query()->create([
+            'name' => 'Grupo Painel Web',
+            'meeting_platform' => 'zoom',
+            'meeting_id' => 'web-001',
+            'weekday' => 'segunda',
+            'start_time' => '13:00:00',
+            'end_time' => '14:00:00',
+            'duration_minutes' => 60,
+            'is_open' => true,
+            'is_study' => false,
+            'is_lgbt' => false,
+            'is_women' => false,
+            'is_hybrid' => false,
+            'is_active' => true,
         ]);
 
         $this->actingAs($user)
@@ -106,6 +104,24 @@ class AdminMetricsDashboardTest extends TestCase
             ->assertSeeText('Sucesso x falha de sync (24h)')
             ->assertSeeText('Latencia media 24h')
             ->assertSeeText('Top rotas lentas')
-            ->assertSeeText('Ultimas sincronizacoes');
+            ->assertSeeText('Ultimas sincronizacoes')
+            ->assertSeeText('Lista de reunioes')
+            ->assertSeeText('clicks_running')
+            ->assertSee('id="meeting-analysis-datatable"', false);
+    }
+
+    public function test_dashboard_renders_click_block_filter_controls(): void
+    {
+        config()->set('na_virtual.metrics.admin_emails', ['admin@example.com']);
+
+        $user = User::factory()->create(['email' => 'admin@example.com']);
+
+        $this->actingAs($user)
+            ->get('/admin/metricas')
+            ->assertOk()
+            ->assertSee('name="click_block"', false)
+            ->assertSee('name="click_window"', false)
+            ->assertSee('id="meeting-analysis-apply"', false)
+            ->assertSee('id="meeting-analysis-clear"', false);
     }
 }
