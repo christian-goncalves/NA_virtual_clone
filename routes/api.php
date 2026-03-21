@@ -18,7 +18,7 @@ Route::middleware('throttle:api-public')->group(function (): void {
         ->name('metrics.events.store');
 });
 
-Route::middleware(['auth.basic', 'is_admin', 'harden.metrics.admin'])->group(function (): void {
+Route::middleware(['web', 'auth', 'is_admin', 'harden.metrics.admin'])->group(function (): void {
     Route::get('/admin/metricas', [MetricsApiController::class, 'index'])
         ->name('admin.metrics.api.index');
 
