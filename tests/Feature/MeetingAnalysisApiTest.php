@@ -196,6 +196,71 @@ class MeetingAnalysisApiTest extends TestCase
             ->assertJsonPath('data.0.name', 'Grupo DT');
     }
 
+    public function test_meeting_analysis_api_sorts_by_last_clicked_at(): void
+    {
+        config()->set('na_virtual.metrics.admin_emails', ['admin@example.com']);
+        $user = User::factory()->create(['email' => 'admin@example.com']);
+
+        $olderMeeting = VirtualMeeting::query()->create([
+            'name' => 'Grupo Click Antigo',
+            'meeting_platform' => 'zoom',
+            'meeting_id' => 'ord-1',
+            'weekday' => 'segunda',
+            'start_time' => '08:00:00',
+            'end_time' => '09:00:00',
+            'duration_minutes' => 60,
+            'is_open' => true,
+            'is_study' => false,
+            'is_lgbt' => false,
+            'is_women' => false,
+            'is_hybrid' => false,
+            'is_active' => true,
+        ]);
+
+        $newerMeeting = VirtualMeeting::query()->create([
+            'name' => 'Grupo Click Recente',
+            'meeting_platform' => 'zoom',
+            'meeting_id' => 'ord-2',
+            'weekday' => 'segunda',
+            'start_time' => '10:00:00',
+            'end_time' => '11:00:00',
+            'duration_minutes' => 60,
+            'is_open' => true,
+            'is_study' => false,
+            'is_lgbt' => false,
+            'is_women' => false,
+            'is_hybrid' => false,
+            'is_active' => true,
+        ]);
+
+        MetricPageView::query()->create([
+            'occurred_at' => now()->subMinutes(30),
+            'route' => '/',
+            'event_type' => 'category_click',
+            'category' => 'running',
+            'session_hash' => 'ord-1',
+            'ip_hash' => 'ord-1',
+            'user_agent' => 'phpunit',
+            'context' => ['meeting_row_id' => $olderMeeting->id],
+        ]);
+
+        MetricPageView::query()->create([
+            'occurred_at' => now()->subMinutes(5),
+            'route' => '/',
+            'event_type' => 'category_click',
+            'category' => 'running',
+            'session_hash' => 'ord-2',
+            'ip_hash' => 'ord-2',
+            'user_agent' => 'phpunit',
+            'context' => ['meeting_row_id' => $newerMeeting->id],
+        ]);
+
+        $this->actingAs($user)
+            ->getJson('/api/admin/metricas/reunioes?click_block=accessed&click_window=24h&sort_by=last_clicked_at&sort_dir=desc')
+            ->assertOk()
+            ->assertJsonPath('data.0.name', 'Grupo Click Recente')
+            ->assertJsonPath('data.1.name', 'Grupo Click Antigo');
+    }
     public function test_meeting_analysis_api_filters_by_click_block_running(): void
     {
         config()->set('na_virtual.metrics.admin_emails', ['admin@example.com']);
@@ -657,3 +722,4 @@ class MeetingAnalysisApiTest extends TestCase
             ]);
     }
 }
+

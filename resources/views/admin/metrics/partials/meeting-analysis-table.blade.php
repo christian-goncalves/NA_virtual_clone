@@ -146,7 +146,7 @@
             const map = {
                 0: 'name',
                 1: 'meeting_id',
-                2: 'start_time',
+                2: 'last_clicked_at',
                 3: 'start_time',
                 4: 'is_open',
                 5: 'click_bucket',

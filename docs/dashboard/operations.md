@@ -50,3 +50,25 @@ location ^~ /admin/ {
 - Bruto (`page_views`, `request_metrics`): 30 dias.
 - `sync_runs` e `meeting_snapshots`: 90 dias.
 - Agregados horarios: 180 dias.
+
+## Diagnostico cirurgico da analise de reunioes (fase leitura)
+Comando dedicado (sem mutacao):
+
+1. `php artisan na:diagnose-meeting-analysis`
+2. `php artisan na:diagnose-meeting-analysis --json > storage/logs/meeting-analysis-diagnose.json`
+3. `php artisan na:diagnose-meeting-analysis --sample=20 --json`
+
+O comando consolida:
+- snapshot de runtime (timezone, flags de metricas, manifest de assets);
+- verificacao de migrations/tabelas de metricas;
+- contagem de `metric_page_views` por `event_type` em 24h e 7d;
+- qualidade de `category_click` (com/sem `context.meeting_row_id`, com match em `virtual_meetings`);
+- comparacao funcional da analise (`click_block=all` vs `click_block=accessed`, ambos em 24h);
+- matriz de causa primaria sugerida.
+
+## Checklist browser (producao)
+1. Abrir a pagina publica `/reunioes-virtuais` em aba com DevTools (Network).
+2. Clicar em `Entrar` em ao menos 1 reuniao.
+3. Confirmar `POST /api/metrics/event` com status `202`.
+4. Conferir payload enviado contendo `event_type=category_click` e `meeting_row_id`.
+5. Validar se alguma extensao/adblock/CSP bloqueou a chamada.

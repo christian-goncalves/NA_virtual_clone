@@ -142,7 +142,7 @@ class NaVirtualMeetingAnalysisService
     {
         $allowedSort = array_values(array_unique(array_merge(
             (array) data_get($contract, 'sorting.allowed', []),
-            ['clicks_total', 'clicks_running', 'clicks_starting_soon', 'clicks_upcoming', 'meeting_id', 'is_open', 'click_bucket']
+            ['clicks_total', 'clicks_running', 'clicks_starting_soon', 'clicks_upcoming', 'meeting_id', 'is_open', 'click_bucket', 'last_clicked_at']
         )));
         $allowedPerPage = array_values(array_unique(array_merge(
             array_map('intval', (array) data_get($contract, 'pagination.allowed_per_page', [20, 50, 100])),
@@ -337,15 +337,15 @@ class NaVirtualMeetingAnalysisService
                 ->orderBy('virtual_meetings.name', 'asc');
         }
 
-        $column = in_array($filters->sortBy, ['clicks_total', 'clicks_running', 'clicks_starting_soon', 'clicks_upcoming'], true)
-            ? $filters->sortBy
-            : 'virtual_meetings.'.$filters->sortBy;
-
+        $column = match (true) {
+            in_array($filters->sortBy, ['clicks_total', 'clicks_running', 'clicks_starting_soon', 'clicks_upcoming'], true) => $filters->sortBy,
+            $filters->sortBy === 'last_clicked_at' => 'last_clicked_at',
+            default => 'virtual_meetings.'.$filters->sortBy,
+        };
         return $query
             ->orderBy($column, $filters->sortDirection)
             ->orderBy('virtual_meetings.name', 'asc');
     }
-
     /**
      * @return array<string, mixed>
      */
@@ -623,7 +623,7 @@ class NaVirtualMeetingAnalysisService
         $labels = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'];
         $weekday = $labels[$at->dayOfWeek] ?? '---';
 
-        return $weekday.' | '.$at->format('H:i');
+        return $at->format('H:i').' | '.$weekday;
     }
 
     private function formatTime(mixed $value): ?string
@@ -702,6 +702,9 @@ class NaVirtualMeetingAnalysisService
         ];
     }
 }
+
+
+
 
 
 
