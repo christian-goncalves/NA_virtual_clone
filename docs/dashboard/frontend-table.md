@@ -110,3 +110,52 @@ Bloqueadas:
 2. Mapeamento de colunas e ordenacao congelado.
 3. Filtro principal de cliques definido com janela temporal.
 4. Compatibilidade retroativa explicitamente definida.
+
+## Extensao CSV (ciclo incremental)
+- Endpoint dedicado: `GET /api/admin/metricas/reunioes/export.csv`.
+- Mesmo hardening admin da API de listagem (`auth.basic`, `is_admin`, `harden.metrics.admin`).
+- Reaproveita filtros e ordenacao existentes para manter consistencia com a tabela.
+- Retorno em arquivo CSV (`text/csv; charset=UTF-8`) com colunas canonicas e colunas de cliques.
+
+## Presets de filtros (Prioridade 2)
+- Endpoints:
+  - `GET /api/admin/metricas/reunioes/presets` (listar presets do usuario autenticado).
+  - `POST /api/admin/metricas/reunioes/presets` (salvar/atualizar preset por nome).
+  - `DELETE /api/admin/metricas/reunioes/presets/{presetId}` (remover preset proprio).
+- Presets persistem apenas filtros canonicos e ordenacao (`sort_by`, `sort_dir`).
+- Contrato 422 padronizado preservado para erros de validacao.
+
+## Ordenacao visual (Prioridade 2)
+- Coluna ordenada recebe destaque visual no header.
+- Indicador textual de ordenacao ativa mostra `coluna` + `asc|desc`.
+- UX de ordenacao permanece compativel com whitelist de ordenacao server-side.
+
+## Paginacao numerica + seletor rapido (Prioridade 1 - item 2)
+- DataTables configurado com paginação numerica (`full_numbers`).
+- Barra de navegacao com:
+  - indicador `Pagina X de Y`;
+  - campo `Ir para` com botao de salto;
+  - seletor `Por pagina` (10/20/50/100).
+- Compatibilidade de query string preservada com `page`, `per_page`, `sort_by`, `sort_dir` e filtros ativos.
+
+## Telemetria da secao (Prioridade 3 - item 1)
+- Eventos enviados para `POST /api/metrics/event` com `event_type=meeting_analysis_usage`.
+- Acoes instrumentadas: aplicar/limpar filtros, exportar CSV, salvar/aplicar/remover preset, trocar ordenacao e interacoes de paginacao.
+- Campos usados no evento:
+  - `category`: acao executada.
+  - `route`: `/admin/metricas`.
+  - `source_section`: `admin_meeting_analysis`.
+  - `meeting_name`: nome do preset quando aplicavel.
+
+## Sugestoes guiadas (Prioridade 3 - item 2)
+- Bloco visual `Sugestoes guiadas` na secao `Lista de reunioes`.
+- Sugestoes de `weekday` e `meeting_platform` alimentadas por `summary.weekday_distribution` e `summary.platform_distribution`.
+- Clique em sugestao preenche o filtro correspondente e reaplica a busca sem alterar o contrato atual da query string.
+- Sem alteracao de nomes de filtros (`weekday`, `meeting_platform`) e sem mudanca no hardening admin.
+
+## Desacoplamento da secao (Prioridade 4)
+- Tela dedicada criada em `/admin/metricas/reunioes` para a secao `Lista de reunioes`.
+- Dashboard principal (`/admin/metricas`) permanece com KPIs operacionais e atalho para a analise detalhada.
+- Hardening admin preservado em ambas as rotas web com `auth.basic`, `is_admin`, `harden.metrics.admin`.
+- Contratos da API interna (`/api/admin/metricas/reunioes`, CSV e presets) permanecem inalterados.
+

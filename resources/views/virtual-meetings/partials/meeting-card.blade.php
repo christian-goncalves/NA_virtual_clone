@@ -12,6 +12,7 @@
     $platform = $meeting?->meeting_platform ?: 'Plataforma nao informada';
     $meetingUrl = $meeting?->meeting_url;
     $meetingId = data_get($meetingData, 'meeting.meeting_id');
+    $meetingRowId = data_get($meetingData, 'meeting.id');
     $meetingPassword = data_get($meetingData, 'meeting.meeting_password');
     $typeLabel = $meeting?->type_label;
     $formatLabels = is_array($meeting?->format_labels) ? $meeting->format_labels : [];
@@ -21,13 +22,20 @@
 
     $displayMeetingId = is_string($meetingId) ? trim($meetingId) : null;
     $displayMeetingPassword = is_string($meetingPassword) ? trim($meetingPassword) : null;
-
+    $meetingWeekday = is_string(data_get($meetingData, 'meeting.weekday')) ? trim((string) data_get($meetingData, 'meeting.weekday')) : null;
     $startAtCarbon = null;
     if ($startAt instanceof Carbon) {
         $startAtCarbon = $startAt;
     } elseif ($startAt) {
         $startAtCarbon = Carbon::parse($startAt);
     }
+    $startHourForMetric = $startAtCarbon instanceof Carbon
+        ? $startAtCarbon->format('H:00')
+        : (is_string(data_get($meetingData, 'meeting.start_time')) ? sprintf('%02d:00', (int) explode(':', (string) data_get($meetingData, 'meeting.start_time'))[0]) : null);
+    $meetingSignature = ($displayMeetingId && $meetingWeekday && $startHourForMetric)
+        ? $displayMeetingId.'|'.$meetingWeekday.'|'.$startHourForMetric
+        : null;
+
 
     $minutesFromStart = null;
     if ($startAtCarbon instanceof Carbon) {
@@ -123,7 +131,7 @@
 
     <div class="vm-card-actions mt-auto pt-1">
         @if ($meetingUrl)
-            <a href="{{ $meetingUrl }}" target="_blank" rel="noopener noreferrer" class="vm-btn vm-card-cta-main py-2.5 text-xs {{ $ctaClass }}" data-metrics-event="category_click" data-source-section="{{ $sourceSection }}" data-meeting-name="{{ $name }}" data-metrics-route="{{ request()->path() }}">
+            <a href="{{ $meetingUrl }}" target="_blank" rel="noopener noreferrer" class="vm-btn vm-card-cta-main py-2.5 text-xs {{ $ctaClass }}" data-metrics-event="category_click" data-source-section="{{ $sourceSection }}" data-meeting-name="{{ $name }}" data-metrics-meeting-row-id="{{ $meetingRowId }}" data-metrics-meeting-signature="{{ $meetingSignature }}" data-metrics-route="{{ request()->path() }}">
                 <i class="fa-solid fa-arrow-right-to-bracket text-[0.72rem]" aria-hidden="true"></i>
                 {{ $ctaLabel }}
             </a>

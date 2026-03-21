@@ -7,7 +7,6 @@ use App\Models\MetricPageView;
 use App\Models\MetricRequestMetric;
 use App\Models\MetricSyncRun;
 use App\Models\User;
-use App\Models\VirtualMeeting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
@@ -33,7 +32,7 @@ class AdminMetricsDashboardTest extends TestCase
             ->assertStatus(403);
     }
 
-    public function test_dashboard_renders_kpis_and_datatable_shell_for_admin(): void
+    public function test_dashboard_renders_kpis_and_link_to_meeting_analysis_for_admin(): void
     {
         config()->set('na_virtual.metrics.admin_emails', ['admin@example.com']);
 
@@ -79,22 +78,6 @@ class AdminMetricsDashboardTest extends TestCase
             'ip_hash' => 'i1',
         ]);
 
-        VirtualMeeting::query()->create([
-            'name' => 'Grupo Painel Web',
-            'meeting_platform' => 'zoom',
-            'meeting_id' => 'web-001',
-            'weekday' => 'segunda',
-            'start_time' => '13:00:00',
-            'end_time' => '14:00:00',
-            'duration_minutes' => 60,
-            'is_open' => true,
-            'is_study' => false,
-            'is_lgbt' => false,
-            'is_women' => false,
-            'is_hybrid' => false,
-            'is_active' => true,
-        ]);
-
         $this->actingAs($user)
             ->get('/admin/metricas')
             ->assertOk()
@@ -105,23 +88,35 @@ class AdminMetricsDashboardTest extends TestCase
             ->assertSeeText('Latencia media 24h')
             ->assertSeeText('Top rotas lentas')
             ->assertSeeText('Ultimas sincronizacoes')
-            ->assertSeeText('Lista de reunioes')
-            ->assertSeeText('clicks_running')
-            ->assertSee('id="meeting-analysis-datatable"', false);
+            ->assertSeeText('Abrir analise de reunioes')
+            ->assertSee('href="'.route('admin.metrics.meetings.index').'"', false)
+            ->assertDontSee('id="meeting-analysis-datatable"', false);
     }
 
-    public function test_dashboard_renders_click_block_filter_controls(): void
+    public function test_meeting_analysis_page_requires_authentication(): void
+    {
+        config()->set('na_virtual.metrics.admin_emails', ['admin@example.com']);
+
+        $this->get('/admin/metricas/reunioes')->assertStatus(401);
+    }
+
+    public function test_meeting_analysis_page_renders_simple_datatable_for_admin(): void
     {
         config()->set('na_virtual.metrics.admin_emails', ['admin@example.com']);
 
         $user = User::factory()->create(['email' => 'admin@example.com']);
 
         $this->actingAs($user)
-            ->get('/admin/metricas')
+            ->get('/admin/metricas/reunioes')
             ->assertOk()
-            ->assertSee('name="click_block"', false)
-            ->assertSee('name="click_window"', false)
-            ->assertSee('id="meeting-analysis-apply"', false)
-            ->assertSee('id="meeting-analysis-clear"', false);
+            ->assertSeeText('Analise de Reunioes')
+            ->assertSee('id="meeting-analysis-datatable"', false)
+            ->assertSee('id="meeting-analysis-click-block-buttons"', false)
+            ->assertSee('data-click-block="accessed"', false)
+            ->assertSee('data-click-block="running"', false)
+            ->assertSee('data-click-block="starting_soon"', false)
+            ->assertSee('data-click-block="upcoming"', false)
+            ->assertDontSee('id="meeting-analysis-presets"', false)
+            ->assertDontSee('id="meeting-analysis-guided-suggestions"', false);
     }
 }

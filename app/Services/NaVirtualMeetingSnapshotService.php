@@ -131,10 +131,17 @@ class NaVirtualMeetingSnapshotService
 
                 return [
                     'meeting' => $meeting ? [
+                        'id' => $meeting->id,
                         'name' => $meeting->name,
                         'meeting_platform' => $meeting->meeting_platform,
                         'meeting_url' => $meeting->meeting_url,
+                        'meeting_id' => $meeting->meeting_id,
+                        'meeting_password' => $meeting->meeting_password,
+                        'weekday' => $meeting->weekday,
+                        'start_time' => $meeting->start_time,
                         'type_label' => $meeting->type_label,
+                        'is_open' => (bool) $meeting->is_open,
+                        'is_study' => (bool) $meeting->is_study,
                         'format_labels' => is_array($meeting->format_labels) ? $meeting->format_labels : [],
                     ] : null,
                     'start_at' => data_get($item, 'start_at') instanceof Carbon ? data_get($item, 'start_at')->toIso8601String() : null,

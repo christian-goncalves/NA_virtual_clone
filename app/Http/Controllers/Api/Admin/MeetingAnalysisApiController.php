@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\NaVirtualMeetingAnalysisPresetService;
 use App\Services\NaVirtualMeetingAnalysisService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\Response;
 
 class MeetingAnalysisApiController extends Controller
 {
@@ -43,5 +45,99 @@ class MeetingAnalysisApiController extends Controller
                 'errors' => $exception->errors(),
             ], 422);
         }
+    }
+
+    public function exportCsv(Request $request, NaVirtualMeetingAnalysisService $service): Response
+    {
+        try {
+            $csv = $service->exportCsv($request->query());
+
+            return response($csv, 200, [
+                'Content-Type' => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => 'attachment; filename="meeting-analysis.csv"',
+                'Cache-Control' => 'no-store, no-cache, must-revalidate',
+            ]);
+        } catch (ValidationException $exception) {
+            return response()->json([
+                'ok' => false,
+                'code' => 'VALIDATION_ERROR',
+                'message' => 'Validation failed.',
+                'errors' => $exception->errors(),
+            ], 422);
+        }
+    }
+
+    public function listPresets(Request $request, NaVirtualMeetingAnalysisPresetService $service): JsonResponse
+    {
+        $user = $request->user();
+
+        if ($user === null) {
+            return response()->json([
+                'ok' => false,
+                'code' => 'UNAUTHENTICATED',
+                'message' => 'Authentication required.',
+            ], 401);
+        }
+
+        return response()->json([
+            'ok' => true,
+            'data' => $service->listForUser($user),
+        ]);
+    }
+
+    public function storePreset(Request $request, NaVirtualMeetingAnalysisPresetService $service): JsonResponse
+    {
+        $user = $request->user();
+
+        if ($user === null) {
+            return response()->json([
+                'ok' => false,
+                'code' => 'UNAUTHENTICATED',
+                'message' => 'Authentication required.',
+            ], 401);
+        }
+
+        try {
+            $preset = $service->saveForUser($user, $request->all());
+
+            return response()->json([
+                'ok' => true,
+                'data' => $preset,
+            ]);
+        } catch (ValidationException $exception) {
+            return response()->json([
+                'ok' => false,
+                'code' => 'VALIDATION_ERROR',
+                'message' => 'Validation failed.',
+                'errors' => $exception->errors(),
+            ], 422);
+        }
+    }
+
+    public function destroyPreset(Request $request, int $presetId, NaVirtualMeetingAnalysisPresetService $service): JsonResponse
+    {
+        $user = $request->user();
+
+        if ($user === null) {
+            return response()->json([
+                'ok' => false,
+                'code' => 'UNAUTHENTICATED',
+                'message' => 'Authentication required.',
+            ], 401);
+        }
+
+        $deleted = $service->deleteForUser($user, $presetId);
+
+        if (! $deleted) {
+            return response()->json([
+                'ok' => false,
+                'code' => 'NOT_FOUND',
+                'message' => 'Preset not found.',
+            ], 404);
+        }
+
+        return response()->json([
+            'ok' => true,
+        ]);
     }
 }

@@ -16,6 +16,8 @@ class MetricsEventController extends Controller
             'category' => ['nullable', 'string', 'max:80'],
             'route' => ['nullable', 'string', 'max:120'],
             'meeting_name' => ['nullable', 'string', 'max:255'],
+            'meeting_row_id' => ['nullable', 'integer', 'min:1'],
+            'meeting_signature' => ['nullable', 'string', 'max:120'],
             'source_section' => ['nullable', 'string', 'max:80'],
         ]);
 

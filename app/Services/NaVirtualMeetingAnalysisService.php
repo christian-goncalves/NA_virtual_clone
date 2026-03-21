@@ -62,6 +62,78 @@ class NaVirtualMeetingAnalysisService
 
     /**
      * @param  array<string, mixed>  $rawFilters
+     *
+     * @throws ValidationException
+     */
+    public function exportCsv(array $rawFilters = []): string
+    {
+        $contract = app(NaVirtualMeetingAnalysisContractService::class)->getDefinition();
+        $filters = $this->resolveFilters($rawFilters, $contract);
+
+        $meetings = $this->applySorting(
+            $this->buildFilteredQuery($filters),
+            $filters,
+        )->get();
+
+        $handle = fopen('php://temp', 'w+');
+
+        if ($handle === false) {
+            return '';
+        }
+
+        fputcsv($handle, [
+            'name',
+            'meeting_platform',
+            'meeting_id',
+            'weekday',
+            'start_time',
+            'end_time',
+            'duration_minutes',
+            'is_open',
+            'is_study',
+            'is_lgbt',
+            'is_women',
+            'is_hybrid',
+            'is_active',
+            'clicks_total',
+            'clicks_running',
+            'clicks_starting_soon',
+            'clicks_upcoming',
+        ]);
+
+        foreach ($meetings as $meeting) {
+            $row = $this->transformMeetingRow($meeting);
+
+            fputcsv($handle, [
+                (string) data_get($row, 'name', ''),
+                (string) data_get($row, 'meeting_platform', ''),
+                (string) data_get($row, 'meeting_id', ''),
+                (string) data_get($row, 'weekday', ''),
+                (string) data_get($row, 'start_time', ''),
+                (string) data_get($row, 'end_time', ''),
+                (string) data_get($row, 'duration_minutes', ''),
+                $this->toCsvBoolLabel((bool) data_get($row, 'is_open', false)),
+                $this->toCsvBoolLabel((bool) data_get($row, 'is_study', false)),
+                $this->toCsvBoolLabel((bool) data_get($row, 'is_lgbt', false)),
+                $this->toCsvBoolLabel((bool) data_get($row, 'is_women', false)),
+                $this->toCsvBoolLabel((bool) data_get($row, 'is_hybrid', false)),
+                $this->toCsvBoolLabel((bool) data_get($row, 'is_active', false)),
+                (int) data_get($row, 'clicks_total', 0),
+                (int) data_get($row, 'clicks_running', 0),
+                (int) data_get($row, 'clicks_starting_soon', 0),
+                (int) data_get($row, 'clicks_upcoming', 0),
+            ]);
+        }
+
+        rewind($handle);
+        $csv = stream_get_contents($handle);
+        fclose($handle);
+
+        return "\xEF\xBB\xBF".(is_string($csv) ? $csv : '');
+    }
+
+    /**
+     * @param  array<string, mixed>  $rawFilters
      * @param  array<string, mixed>  $contract
      *
      * @throws ValidationException
@@ -70,14 +142,14 @@ class NaVirtualMeetingAnalysisService
     {
         $allowedSort = array_values(array_unique(array_merge(
             (array) data_get($contract, 'sorting.allowed', []),
-            ['clicks_total', 'clicks_running', 'clicks_starting_soon', 'clicks_upcoming']
+            ['clicks_total', 'clicks_running', 'clicks_starting_soon', 'clicks_upcoming', 'meeting_id', 'is_open', 'click_bucket']
         )));
         $allowedPerPage = array_values(array_unique(array_merge(
             array_map('intval', (array) data_get($contract, 'pagination.allowed_per_page', [20, 50, 100])),
             [10]
         )));
         $allowedWeekdays = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
-        $allowedClickBlocks = ['all', 'running', 'starting_soon', 'upcoming'];
+        $allowedClickBlocks = ['all', 'accessed', 'running', 'starting_soon', 'upcoming'];
         $allowedClickWindows = ['24h', '7d', '30d', 'custom'];
 
         $validator = Validator::make($rawFilters, [
@@ -96,6 +168,8 @@ class NaVirtualMeetingAnalysisService
             'click_window' => ['nullable', 'string', Rule::in($allowedClickWindows)],
             'click_from' => ['nullable', 'date'],
             'click_to' => ['nullable', 'date'],
+            'click_from_hour' => ['nullable', 'string', 'regex:/^\d{4}-\d{2}-\d{2} \d{2}(:\d{2})?$/'],
+            'click_to_hour' => ['nullable', 'string', 'regex:/^\d{4}-\d{2}-\d{2} \d{2}(:\d{2})?$/'],
             'sort_by' => ['nullable', 'string', Rule::in($allowedSort)],
             'sort_dir' => ['nullable', 'string', Rule::in(['asc', 'desc'])],
             'per_page' => ['nullable', 'integer', Rule::in($allowedPerPage)],
@@ -124,10 +198,27 @@ class NaVirtualMeetingAnalysisService
         $clickWindow = (string) data_get($validated, 'click_window', '24h');
         $clickFrom = $this->normalizeString(data_get($validated, 'click_from'));
         $clickTo = $this->normalizeString(data_get($validated, 'click_to'));
+        $clickFromHour = $this->normalizeString(data_get($validated, 'click_from_hour'));
+        $clickToHour = $this->normalizeString(data_get($validated, 'click_to_hour'));
 
-        if ($clickWindow === 'custom' && ($clickFrom === null || $clickTo === null)) {
+        if (($clickFromHour === null) xor ($clickToHour === null)) {
             throw ValidationException::withMessages([
-                'click_window' => ['Para janela custom, click_from e click_to sao obrigatorios.'],
+                'click_from_hour' => ['click_from_hour e click_to_hour devem ser informados em conjunto.'],
+            ]);
+        }
+
+        $hasDateRange = $clickFrom !== null && $clickTo !== null;
+        $hasHourRange = $clickFromHour !== null && $clickToHour !== null;
+
+        if ($hasHourRange && strcmp((string) $clickFromHour, (string) $clickToHour) > 0) {
+            throw ValidationException::withMessages([
+                'click_from_hour' => ['O periodo de clique deve ter inicio menor ou igual ao fim.'],
+            ]);
+        }
+
+        if ($clickWindow === 'custom' && ! $hasDateRange && ! $hasHourRange) {
+            throw ValidationException::withMessages([
+                'click_window' => ['Para janela custom, informe click_from/click_to ou click_from_hour/click_to_hour.'],
             ]);
         }
 
@@ -164,6 +255,11 @@ class NaVirtualMeetingAnalysisService
             $searchName = $globalSearch;
         }
 
+        $clickBlock = $this->normalizeString(data_get($validated, 'click_block'));
+        if ($clickWindow === 'custom' && ($clickBlock === null || $clickBlock === 'all')) {
+            $clickBlock = 'accessed';
+        }
+
         return new NaVirtualMeetingAnalysisFiltersData(
             searchName: $searchName,
             weekday: $this->normalizeString(data_get($validated, 'weekday')),
@@ -176,10 +272,12 @@ class NaVirtualMeetingAnalysisService
             isWomen: $this->normalizeBool(data_get($validated, 'is_women')),
             isHybrid: $this->normalizeBool(data_get($validated, 'is_hybrid')),
             isActive: $this->normalizeBool(data_get($validated, 'is_active')),
-            clickBlock: $this->normalizeString(data_get($validated, 'click_block')),
+            clickBlock: $clickBlock,
             clickWindow: $clickWindow,
             clickFrom: $clickFrom,
             clickTo: $clickTo,
+            clickFromHour: $clickFromHour,
+            clickToHour: $clickToHour,
             sortBy: $sortBy,
             sortDirection: $sortDirection,
             perPage: $perPage,
@@ -191,18 +289,31 @@ class NaVirtualMeetingAnalysisService
 
     public function buildFilteredQuery(NaVirtualMeetingAnalysisFiltersData $filters): Builder
     {
-        $clicksSub = $this->buildClickStatsSubquery($filters);
+        $clicksByRowIdSub = $this->buildClickStatsByRowIdSubquery($filters);
 
         return VirtualMeeting::query()
-            ->leftJoinSub($clicksSub, 'clicks', function ($join): void {
-                $join->on('clicks.meeting_name', '=', 'virtual_meetings.name');
+            ->leftJoinSub($clicksByRowIdSub, 'clicks_by_rowid', function ($join): void {
+                $join->on('clicks_by_rowid.meeting_row_id', '=', 'virtual_meetings.id');
             })
             ->select('virtual_meetings.*')
-            ->selectRaw('COALESCE(clicks.clicks_total, 0) as clicks_total')
-            ->selectRaw('COALESCE(clicks.clicks_running, 0) as clicks_running')
-            ->selectRaw('COALESCE(clicks.clicks_starting_soon, 0) as clicks_starting_soon')
-            ->selectRaw('COALESCE(clicks.clicks_upcoming, 0) as clicks_upcoming')
-            ->when($filters->searchName !== null, fn (Builder $query): Builder => $query->where('virtual_meetings.name', 'like', '%'.$filters->searchName.'%'))
+            ->selectRaw($this->clickBucketExpression().' as click_bucket')
+            ->selectRaw($this->clickBucketSortRankExpression().' as click_bucket_sort_rank')
+            ->selectRaw($this->clicksTotalExpression().' as clicks_total')
+            ->selectRaw($this->clicksRunningExpression().' as clicks_running')
+            ->selectRaw($this->clicksStartingSoonExpression().' as clicks_starting_soon')
+            ->selectRaw($this->clicksUpcomingExpression().' as clicks_upcoming')
+            ->selectRaw('clicks_by_rowid.last_clicked_at as last_clicked_at')
+            ->when($filters->searchName !== null, function (Builder $query) use ($filters): Builder {
+                $search = '%'.$filters->searchName.'%';
+
+                return $query->where(function (Builder $nested) use ($search): void {
+                    $nested
+                        ->where('virtual_meetings.name', 'like', $search)
+                        ->orWhere('virtual_meetings.meeting_id', 'like', $search)
+                        ->orWhere('virtual_meetings.weekday', 'like', $search)
+                        ->orWhereRaw($this->clickBucketExpression().' like ?', [$search]);
+                });
+            })
             ->when($filters->weekday !== null, fn (Builder $query): Builder => $query->where('virtual_meetings.weekday', $filters->weekday))
             ->when($filters->timeStart !== null, fn (Builder $query): Builder => $query->whereTime('virtual_meetings.start_time', '>=', $filters->timeStart))
             ->when($filters->timeEnd !== null, fn (Builder $query): Builder => $query->whereTime('virtual_meetings.start_time', '<=', $filters->timeEnd))
@@ -213,14 +324,19 @@ class NaVirtualMeetingAnalysisService
             ->when($filters->isWomen !== null, fn (Builder $query): Builder => $query->where('virtual_meetings.is_women', $filters->isWomen))
             ->when($filters->isHybrid !== null, fn (Builder $query): Builder => $query->where('virtual_meetings.is_hybrid', $filters->isHybrid))
             ->when($filters->isActive !== null, fn (Builder $query): Builder => $query->where('virtual_meetings.is_active', $filters->isActive))
-            ->when($filters->clickBlock === 'all', fn (Builder $query): Builder => $query->whereRaw('COALESCE(clicks.clicks_total, 0) > 0'))
-            ->when($filters->clickBlock === 'running', fn (Builder $query): Builder => $query->whereRaw('COALESCE(clicks.clicks_running, 0) > 0'))
-            ->when($filters->clickBlock === 'starting_soon', fn (Builder $query): Builder => $query->whereRaw('COALESCE(clicks.clicks_starting_soon, 0) > 0'))
-            ->when($filters->clickBlock === 'upcoming', fn (Builder $query): Builder => $query->whereRaw('COALESCE(clicks.clicks_upcoming, 0) > 0'));
+            ->when($filters->clickBlock === 'accessed', fn (Builder $query): Builder => $query->whereRaw($this->clicksTotalExpression().' > 0'))
+            ->when($filters->clickBlock === 'running', fn (Builder $query): Builder => $query->whereRaw($this->clicksRunningExpression().' > 0'))
+            ->when($filters->clickBlock === 'starting_soon', fn (Builder $query): Builder => $query->whereRaw($this->clicksStartingSoonExpression().' > 0'))
+            ->when($filters->clickBlock === 'upcoming', fn (Builder $query): Builder => $query->whereRaw($this->clicksUpcomingExpression().' > 0'));
     }
-
     public function applySorting(Builder $query, NaVirtualMeetingAnalysisFiltersData $filters): Builder
     {
+        if ($filters->sortBy === 'click_bucket') {
+            return $query
+                ->orderByRaw($this->clickBucketSortRankExpression().' '.$filters->sortDirection)
+                ->orderBy('virtual_meetings.name', 'asc');
+        }
+
         $column = in_array($filters->sortBy, ['clicks_total', 'clicks_running', 'clicks_starting_soon', 'clicks_upcoming'], true)
             ? $filters->sortBy
             : 'virtual_meetings.'.$filters->sortBy;
@@ -277,46 +393,157 @@ class NaVirtualMeetingAnalysisService
     private function transformRows(LengthAwarePaginator $paginator): array
     {
         return collect($paginator->items())
-            ->map(fn (VirtualMeeting $meeting): array => [
-                'name' => (string) $meeting->name,
-                'meeting_platform' => $meeting->meeting_platform,
-                'meeting_id' => $meeting->meeting_id,
-                'weekday' => $meeting->weekday,
-                'start_time' => $this->formatTime($meeting->start_time),
-                'end_time' => $this->formatTime($meeting->end_time),
-                'duration_minutes' => $meeting->duration_minutes,
-                'is_open' => (bool) $meeting->is_open,
-                'is_study' => (bool) $meeting->is_study,
-                'is_lgbt' => (bool) $meeting->is_lgbt,
-                'is_women' => (bool) $meeting->is_women,
-                'is_hybrid' => (bool) $meeting->is_hybrid,
-                'is_active' => (bool) $meeting->is_active,
-                'clicks_total' => (int) ($meeting->clicks_total ?? 0),
-                'clicks_running' => (int) ($meeting->clicks_running ?? 0),
-                'clicks_starting_soon' => (int) ($meeting->clicks_starting_soon ?? 0),
-                'clicks_upcoming' => (int) ($meeting->clicks_upcoming ?? 0),
-            ])
+            ->map(fn (VirtualMeeting $meeting): array => $this->transformMeetingRow($meeting))
             ->all();
     }
 
-    private function buildClickStatsSubquery(NaVirtualMeetingAnalysisFiltersData $filters): Builder
+    /**
+     * @return array<string, mixed>
+     */
+    private function transformMeetingRow(VirtualMeeting $meeting): array
     {
-        $meetingNameExpr = $this->meetingNameExpression();
+        $name = (string) $meeting->name;
+        $isOpen = (bool) $meeting->is_open;
+        $isStudy = (bool) $meeting->is_study;
+
+        return [
+            'name' => $name,
+            'name_clean' => $this->cleanMeetingName($name),
+            'meeting_platform' => $meeting->meeting_platform,
+            'meeting_id' => $meeting->meeting_id,
+            'weekday' => $meeting->weekday,
+            'hora_clique' => $this->formatClickHour($meeting->last_clicked_at),
+            'start_time' => $this->formatTime($meeting->start_time),
+            'start_hour' => $this->formatStartHour($meeting->start_time),
+            'end_time' => $this->formatTime($meeting->end_time),
+            'duration_minutes' => $meeting->duration_minutes,
+            'meeting_format' => $this->resolveMeetingFormat($isOpen, $isStudy),
+            'is_open' => $isOpen,
+            'is_study' => $isStudy,
+            'is_lgbt' => (bool) $meeting->is_lgbt,
+            'is_women' => (bool) $meeting->is_women,
+            'is_hybrid' => (bool) $meeting->is_hybrid,
+            'is_active' => (bool) $meeting->is_active,
+            'clicks_total' => (int) ($meeting->clicks_total ?? 0),
+            'clicks_running' => (int) ($meeting->clicks_running ?? 0),
+            'clicks_starting_soon' => (int) ($meeting->clicks_starting_soon ?? 0),
+            'clicks_upcoming' => (int) ($meeting->clicks_upcoming ?? 0),
+            'click_bucket' => (string) ($meeting->click_bucket ?? 'sem_clique'),
+        ];
+    }
+
+    private function cleanMeetingName(string $name): string
+    {
+        $trimmed = trim($name);
+        if ($trimmed === '') {
+            return $trimmed;
+        }
+
+        $clean = preg_replace('/^grupo\s+/iu', '', $trimmed);
+
+        return is_string($clean) && trim($clean) !== '' ? trim($clean) : $trimmed;
+    }
+
+    private function formatStartHour(mixed $value): ?string
+    {
+        if (! is_string($value) || trim($value) === '') {
+            return null;
+        }
+
+        $parts = explode(':', $value);
+        if ($parts === [] || ! isset($parts[0])) {
+            return null;
+        }
+
+        return sprintf('%02d:00', (int) $parts[0]);
+    }
+
+    private function resolveMeetingFormat(bool $isOpen, bool $isStudy): string
+    {
+        if ($isOpen) {
+            return 'aberta';
+        }
+
+        return $isStudy ? 'fechada (estudo)' : 'fechada';
+    }
+
+    private function toCsvBoolLabel(bool $value): string
+    {
+        return $value ? 'Sim' : 'Nao';
+    }
+
+    private function buildClickStatsByRowIdSubquery(NaVirtualMeetingAnalysisFiltersData $filters): Builder
+    {
+        $meetingRowIdExpr = $this->meetingRowIdExpression();
         [$fromAt, $toAt] = $this->resolveClickWindowRange($filters);
 
         return MetricPageView::query()
             ->from('metric_page_views as mpv')
-            ->selectRaw($meetingNameExpr.' as meeting_name')
+            ->selectRaw($meetingRowIdExpr.' as meeting_row_id')
             ->selectRaw('COUNT(*) as clicks_total')
             ->selectRaw("SUM(CASE WHEN mpv.category = 'running' THEN 1 ELSE 0 END) as clicks_running")
             ->selectRaw("SUM(CASE WHEN mpv.category = 'starting_soon' THEN 1 ELSE 0 END) as clicks_starting_soon")
             ->selectRaw("SUM(CASE WHEN mpv.category = 'upcoming' THEN 1 ELSE 0 END) as clicks_upcoming")
+            ->selectRaw('MAX(mpv.occurred_at) as last_clicked_at')
             ->where('mpv.event_type', 'category_click')
             ->whereNotNull('mpv.context')
-            ->whereRaw($meetingNameExpr.' IS NOT NULL')
+            ->whereRaw($meetingRowIdExpr.' IS NOT NULL')
             ->when($fromAt !== null, fn (Builder $query): Builder => $query->where('mpv.occurred_at', '>=', $fromAt))
             ->when($toAt !== null, fn (Builder $query): Builder => $query->where('mpv.occurred_at', '<=', $toAt))
-            ->groupBy('meeting_name');
+            ->groupBy('meeting_row_id');
+    }
+    private function clicksTotalExpression(): string
+    {
+        return 'COALESCE(clicks_by_rowid.clicks_total, 0)';
+    }
+
+    private function clicksRunningExpression(): string
+    {
+        return 'COALESCE(clicks_by_rowid.clicks_running, 0)';
+    }
+
+    private function clicksStartingSoonExpression(): string
+    {
+        return 'COALESCE(clicks_by_rowid.clicks_starting_soon, 0)';
+    }
+
+    private function clicksUpcomingExpression(): string
+    {
+        return 'COALESCE(clicks_by_rowid.clicks_upcoming, 0)';
+    }
+
+    private function clickBucketExpression(): string
+    {
+        $total = $this->clicksTotalExpression();
+        $running = $this->clicksRunningExpression();
+        $startingSoon = $this->clicksStartingSoonExpression();
+        $upcoming = $this->clicksUpcomingExpression();
+
+        return "CASE
+            WHEN {$total} = 0 THEN 'sem_clique'
+            WHEN {$running} >= {$startingSoon}
+                AND {$running} >= {$upcoming} THEN 'andamento'
+            WHEN {$startingSoon} >= {$running}
+                AND {$startingSoon} >= {$upcoming} THEN 'em_breve'
+            ELSE 'proxima'
+        END";
+    }
+
+    private function clickBucketSortRankExpression(): string
+    {
+        $total = $this->clicksTotalExpression();
+        $running = $this->clicksRunningExpression();
+        $startingSoon = $this->clicksStartingSoonExpression();
+        $upcoming = $this->clicksUpcomingExpression();
+
+        return "CASE
+            WHEN {$total} = 0 THEN 4
+            WHEN {$running} >= {$startingSoon}
+                AND {$running} >= {$upcoming} THEN 1
+            WHEN {$startingSoon} >= {$running}
+                AND {$startingSoon} >= {$upcoming} THEN 2
+            ELSE 3
+        END";
     }
 
     /**
@@ -328,23 +555,75 @@ class NaVirtualMeetingAnalysisService
             '7d' => [now()->subDays(7), now()],
             '30d' => [now()->subDays(30), now()],
             'custom' => [
-                $filters->clickFrom !== null ? Carbon::parse($filters->clickFrom) : null,
-                $filters->clickTo !== null ? Carbon::parse($filters->clickTo) : null,
+                $this->resolveCustomFrom($filters),
+                $this->resolveCustomTo($filters),
             ],
             default => [now()->subDay(), now()],
         };
     }
 
-    private function meetingNameExpression(): string
+    private function resolveCustomFrom(NaVirtualMeetingAnalysisFiltersData $filters): ?Carbon
+    {
+        if ($filters->clickFromHour !== null) {
+            return $this->parseCustomDateTime($filters->clickFromHour, 'from');
+        }
+
+        return $filters->clickFrom !== null ? Carbon::parse($filters->clickFrom)->startOfDay() : null;
+    }
+
+    private function resolveCustomTo(NaVirtualMeetingAnalysisFiltersData $filters): ?Carbon
+    {
+        if ($filters->clickToHour !== null) {
+            return $this->parseCustomDateTime($filters->clickToHour, 'to');
+        }
+
+        return $filters->clickTo !== null ? Carbon::parse($filters->clickTo)->endOfDay() : null;
+    }    private function parseCustomDateTime(string $value, string $boundary): Carbon
+    {
+        $timezone = (string) config('app.timezone', 'UTC');
+        $hasMinutes = preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/', $value) === 1;
+        $format = $hasMinutes ? 'Y-m-d H:i' : 'Y-m-d H';
+        $parsed = Carbon::createFromFormat($format, $value, $timezone);
+
+        if ($parsed === false) {
+            throw ValidationException::withMessages([
+                'click_from_hour' => ['Formato invalido para click_from_hour/click_to_hour.'],
+            ]);
+        }
+
+        if ($hasMinutes) {
+            return $parsed;
+        }
+
+        return $boundary === 'to' ? $parsed->endOfHour() : $parsed->startOfHour();
+    }
+
+    private function meetingRowIdExpression(): string
     {
         $driver = (string) config('database.default');
         $connectionDriver = (string) config('database.connections.'.$driver.'.driver', $driver);
 
         if ($connectionDriver === 'mysql') {
-            return "JSON_UNQUOTE(JSON_EXTRACT(mpv.context, '$.meeting_name'))";
+            return "CAST(JSON_UNQUOTE(JSON_EXTRACT(mpv.context, '$.meeting_row_id')) AS UNSIGNED)";
         }
 
-        return "json_extract(mpv.context, '$.meeting_name')";
+        return "CAST(json_extract(mpv.context, '$.meeting_row_id') AS INTEGER)";
+    }
+
+    private function formatClickHour(mixed $value): string
+    {
+        if ($value === null || $value === '') {
+            return '-';
+        }
+
+        $timezone = (string) config('app.timezone', 'UTC');
+        $at = $value instanceof Carbon ? $value : Carbon::parse((string) $value);
+        $at = $at->copy()->timezone($timezone);
+
+        $labels = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'];
+        $weekday = $labels[$at->dayOfWeek] ?? '---';
+
+        return $weekday.' | '.$at->format('H:i');
     }
 
     private function formatTime(mixed $value): ?string
@@ -361,8 +640,7 @@ class NaVirtualMeetingAnalysisService
         return sprintf('%02d:%02d', (int) $parts[0], (int) $parts[1]);
     }
 
-    private function normalizeString(mixed $value): ?string
-    {
+    private function normalizeString(mixed $value): ?string{
         if (! is_string($value)) {
             return null;
         }
@@ -424,4 +702,13 @@ class NaVirtualMeetingAnalysisService
         ];
     }
 }
+
+
+
+
+
+
+
+
+
 

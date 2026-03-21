@@ -49,6 +49,10 @@ class NaVirtualMeetingHomepageDataService
             return false;
         }
 
+        if (! $this->snapshotHasTrackingKeys($snapshotData)) {
+            return false;
+        }
+
         $totalLive = (int) data_get($liveData, 'runningCount', 0)
             + (int) data_get($liveData, 'startingSoonCount', 0)
             + (int) data_get($liveData, 'upcomingCount', 0);
@@ -60,6 +64,24 @@ class NaVirtualMeetingHomepageDataService
         return $this->isSyncUnavailableOrStale();
     }
 
+    private function snapshotHasTrackingKeys(array $snapshotData): bool
+    {
+        $firstRunning = data_get($snapshotData, 'runningMeetings.0.meeting');
+        $firstSoon = data_get($snapshotData, 'startingSoonMeetings.0.meeting');
+        $firstUpcoming = data_get($snapshotData, 'upcomingMeetings.0.meeting');
+
+        foreach ([$firstRunning, $firstSoon, $firstUpcoming] as $meeting) {
+            if (is_object($meeting) && data_get($meeting, 'id') !== null) {
+                return true;
+            }
+
+            if (is_array($meeting) && data_get($meeting, 'id') !== null) {
+                return true;
+            }
+        }
+
+        return false;
+    }
     private function resolveFallbackReason(array $liveData): string
     {
         $totalLive = (int) data_get($liveData, 'runningCount', 0)

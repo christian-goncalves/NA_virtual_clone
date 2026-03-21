@@ -209,7 +209,7 @@ class NaVirtualMeetingAnalysisServiceTest extends TestCase
 
     public function test_search_filters_meetings_by_click_block(): void
     {
-        VirtualMeeting::query()->create([
+        $clickMeetingOne = VirtualMeeting::query()->create([
             'name' => 'Grupo Click 1',
             'meeting_platform' => 'zoom',
             'meeting_id' => 'ck1',
@@ -250,7 +250,8 @@ class NaVirtualMeetingAnalysisServiceTest extends TestCase
             'ip_hash' => 'i1',
             'user_agent' => 'phpunit',
             'context' => [
-                'meeting_name' => 'Grupo Click 1',
+                'meeting_row_id' => $clickMeetingOne->id,
+                'meeting_signature' => 'ck1|segunda|08:00',
             ],
         ]);
 
@@ -264,5 +265,80 @@ class NaVirtualMeetingAnalysisServiceTest extends TestCase
         $this->assertSame(1, data_get($result, 'summary.total_filtered'));
         $this->assertSame('Grupo Click 1', data_get($result, 'rows.0.name'));
         $this->assertSame(1, data_get($result, 'rows.0.clicks_running'));
+    }
+    public function test_search_resolves_click_bucket_with_priority_and_sem_clique(): void
+    {
+        $dominantMeeting = VirtualMeeting::query()->create([
+            'name' => 'Grupo Dominante Running',
+            'meeting_platform' => 'zoom',
+            'meeting_id' => 'dkr1',
+            'weekday' => 'segunda',
+            'start_time' => '08:00:00',
+            'end_time' => '09:00:00',
+            'duration_minutes' => 60,
+            'is_open' => true,
+            'is_study' => false,
+            'is_lgbt' => false,
+            'is_women' => false,
+            'is_hybrid' => false,
+            'is_active' => true,
+        ]);
+
+        VirtualMeeting::query()->create([
+            'name' => 'Grupo Sem Clique',
+            'meeting_platform' => 'zoom',
+            'meeting_id' => 'dkr2',
+            'weekday' => 'terca',
+            'start_time' => '10:00:00',
+            'end_time' => '11:00:00',
+            'duration_minutes' => 60,
+            'is_open' => false,
+            'is_study' => true,
+            'is_lgbt' => false,
+            'is_women' => false,
+            'is_hybrid' => false,
+            'is_active' => true,
+        ]);
+
+        MetricPageView::query()->create([
+            'occurred_at' => now()->subMinutes(5),
+            'route' => '/',
+            'event_type' => 'category_click',
+            'category' => 'running',
+            'session_hash' => 'rk1',
+            'ip_hash' => 'ip1',
+            'user_agent' => 'phpunit',
+            'context' => ['meeting_name' => 'Grupo Dominante Running', 'meeting_row_id' => $dominantMeeting->id, 'meeting_signature' => 'dkr1|segunda|08:00'],
+        ]);
+
+        MetricPageView::query()->create([
+            'occurred_at' => now()->subMinutes(4),
+            'route' => '/',
+            'event_type' => 'category_click',
+            'category' => 'starting_soon',
+            'session_hash' => 'rk2',
+            'ip_hash' => 'ip2',
+            'user_agent' => 'phpunit',
+            'context' => ['meeting_name' => 'Grupo Dominante Running', 'meeting_row_id' => $dominantMeeting->id, 'meeting_signature' => 'dkr1|segunda|08:00'],
+        ]);
+
+        $service = app(NaVirtualMeetingAnalysisService::class);
+
+        $all = $service->search([
+            'click_window' => '24h',
+            'sort_by' => 'name',
+            'sort_dir' => 'asc',
+        ]);
+
+        $this->assertSame('andamento', data_get($all, 'rows.0.click_bucket'));
+        $this->assertSame('sem_clique', data_get($all, 'rows.1.click_bucket'));
+
+        $filtered = $service->search([
+            'click_block' => 'running',
+            'click_window' => '24h',
+        ]);
+
+        $this->assertSame(1, data_get($filtered, 'summary.total_filtered'));
+        $this->assertSame('Grupo Dominante Running', data_get($filtered, 'rows.0.name'));
     }
 }

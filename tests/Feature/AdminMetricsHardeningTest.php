@@ -68,6 +68,19 @@ class AdminMetricsHardeningTest extends TestCase
             ->assertStatus(403);
     }
 
+
+    public function test_admin_meeting_analysis_page_blocks_ip_outside_allowlist(): void
+    {
+        config()->set('na_virtual.metrics.admin_emails', ['admin@example.com']);
+        config()->set('na_virtual.metrics.admin.ip_allowlist', ['10.0.0.0/8']);
+
+        $user = User::factory()->create(['email' => 'admin@example.com']);
+
+        $this->actingAs($user)
+            ->withServerVariables(['REMOTE_ADDR' => '192.168.1.20'])
+            ->get('/admin/metricas/reunioes')
+            ->assertStatus(403);
+    }
     public function test_admin_meeting_analysis_api_blocks_ip_outside_allowlist(): void
     {
         config()->set('na_virtual.metrics.admin_emails', ['admin@example.com']);
@@ -80,4 +93,18 @@ class AdminMetricsHardeningTest extends TestCase
             ->getJson('/api/admin/metricas/reunioes')
             ->assertStatus(403);
     }
+
+    public function test_admin_meeting_analysis_presets_api_blocks_ip_outside_allowlist(): void
+    {
+        config()->set('na_virtual.metrics.admin_emails', ['admin@example.com']);
+        config()->set('na_virtual.metrics.admin.ip_allowlist', ['10.0.0.0/8']);
+
+        $user = User::factory()->create(['email' => 'admin@example.com']);
+
+        $this->actingAs($user)
+            ->withServerVariables(['REMOTE_ADDR' => '192.168.1.20'])
+            ->getJson('/api/admin/metricas/reunioes/presets')
+            ->assertStatus(403);
+    }
 }
+

@@ -15,4 +15,8 @@ Route::middleware(['throttle:web-public', 'track.vm.pageview', 'track.vm.request
 Route::middleware(['auth.basic', 'is_admin', 'harden.metrics.admin'])->group(function (): void {
     Route::get('/admin/metricas', [MetricsDashboardController::class, 'index'])
         ->name('admin.metrics.index');
+
+    Route::get('/admin/metricas/reunioes', [MetricsDashboardController::class, 'meetingAnalysis'])
+        ->name('admin.metrics.meetings.index');
 });
+

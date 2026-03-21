@@ -4,8 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class MetricPageView extends Model
+class MetricMeetingAnalysisPreset extends Model
 {
     use HasFactory;
 
@@ -13,15 +14,9 @@ class MetricPageView extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'event_uuid',
-        'occurred_at',
-        'route',
-        'event_type',
-        'category',
-        'session_hash',
-        'ip_hash',
-        'user_agent',
-        'context',
+        'user_id',
+        'name',
+        'filters',
     ];
 
     /**
@@ -30,8 +25,13 @@ class MetricPageView extends Model
     protected function casts(): array
     {
         return [
-            'occurred_at' => 'datetime',
-            'context' => 'array',
+            'filters' => 'array',
         ];
     }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 }
+

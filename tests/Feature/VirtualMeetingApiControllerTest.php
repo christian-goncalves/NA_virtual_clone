@@ -166,9 +166,13 @@ class VirtualMeetingApiControllerTest extends TestCase
                 'upcomingCount' => 0,
                 'runningMeetings' => [[
                     'meeting' => [
+                        'id' => 888,
                         'name' => 'Grupo Snapshot API',
                         'meeting_platform' => 'zoom',
                         'meeting_url' => 'https://example.com/snapshot',
+                        'meeting_id' => 'snap-api-888',
+                        'weekday' => 'segunda',
+                        'start_time' => '12:00:00',
                         'type_label' => 'aberta',
                         'format_labels' => ['aberta'],
                     ],

@@ -9,6 +9,7 @@ use App\Models\MetricRequestMetric;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
@@ -24,6 +25,7 @@ class NaVirtualMeetingMetricsIngestionService
         }
 
         MetricPageView::query()->create([
+            'event_uuid' => (string) Str::ulid(),
             'occurred_at' => now(),
             'route' => $route,
             'event_type' => 'page_view',
@@ -48,6 +50,7 @@ class NaVirtualMeetingMetricsIngestionService
         $category = is_string(data_get($payload, 'category')) ? trim((string) data_get($payload, 'category')) : null;
 
         MetricPageView::query()->create([
+            'event_uuid' => (string) Str::ulid(),
             'occurred_at' => now(),
             'route' => is_string(data_get($payload, 'route')) ? (string) data_get($payload, 'route') : (string) $request->path(),
             'event_type' => $eventType,
@@ -57,6 +60,8 @@ class NaVirtualMeetingMetricsIngestionService
             'user_agent' => $this->truncateUserAgent($request->userAgent()),
             'context' => [
                 'meeting_name' => data_get($payload, 'meeting_name'),
+                'meeting_row_id' => data_get($payload, 'meeting_row_id'),
+                'meeting_signature' => data_get($payload, 'meeting_signature'),
                 'source_section' => data_get($payload, 'source_section'),
             ],
         ]);

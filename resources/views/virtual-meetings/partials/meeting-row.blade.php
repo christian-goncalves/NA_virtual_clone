@@ -9,6 +9,14 @@
 
     $name = $meeting?->name ?: 'Grupo sem nome';
     $meetingUrl = $meeting?->meeting_url;
+    $meetingId = data_get($meetingData, 'meeting.meeting_id');
+    $meetingRowId = data_get($meetingData, 'meeting.id');
+    $displayMeetingId = is_string($meetingId) ? trim($meetingId) : null;
+    $meetingWeekday = is_string(data_get($meetingData, 'meeting.weekday')) ? trim((string) data_get($meetingData, 'meeting.weekday')) : null;
+    $startHourForMetric = $startAt ? $startAt->format('H:00') : null;
+    $meetingSignature = ($displayMeetingId && $meetingWeekday && $startHourForMetric)
+        ? $displayMeetingId.'|'.$meetingWeekday.'|'.$startHourForMetric
+        : null;
     $typeLabel = $meeting?->type_label;
     $formatLabels = is_array($meeting?->format_labels) ? $meeting->format_labels : [];
     $isStudyMeeting = (bool) data_get($meeting, 'is_study', false);
@@ -65,6 +73,7 @@
                 data-metrics-event="category_click"
                 data-source-section="{{ $sourceSection }}"
                 data-meeting-name="{{ $name }}"
+                data-metrics-meeting-row-id="{{ $meetingRowId }}" data-metrics-meeting-signature="{{ $meetingSignature }}"
                 data-metrics-route="{{ request()->path() }}"
             >
                 <i class="fa-solid fa-arrow-right-to-bracket text-[0.72rem]" aria-hidden="true"></i>

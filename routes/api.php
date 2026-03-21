@@ -24,4 +24,16 @@ Route::middleware(['auth.basic', 'is_admin', 'harden.metrics.admin'])->group(fun
 
     Route::get('/admin/metricas/reunioes', [MeetingAnalysisApiController::class, 'index'])
         ->name('admin.metrics.api.meetings.index');
+
+    Route::get('/admin/metricas/reunioes/export.csv', [MeetingAnalysisApiController::class, 'exportCsv'])
+        ->name('admin.metrics.api.meetings.export');
+
+    Route::get('/admin/metricas/reunioes/presets', [MeetingAnalysisApiController::class, 'listPresets'])
+        ->name('admin.metrics.api.meetings.presets.index');
+
+    Route::post('/admin/metricas/reunioes/presets', [MeetingAnalysisApiController::class, 'storePreset'])
+        ->name('admin.metrics.api.meetings.presets.store');
+
+    Route::delete('/admin/metricas/reunioes/presets/{presetId}', [MeetingAnalysisApiController::class, 'destroyPreset'])
+        ->name('admin.metrics.api.meetings.presets.destroy');
 });

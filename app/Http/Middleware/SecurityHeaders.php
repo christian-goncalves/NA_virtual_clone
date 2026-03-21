@@ -31,8 +31,8 @@ class SecurityHeaders
             $viteHttpSources = implode(' ', array_filter($viteDevHosts, static fn (string $host): bool => str_starts_with($host, 'http')));
             $viteConnectSources = implode(' ', $viteDevHosts);
 
-            $scriptSrc = "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com";
-            $styleSrc = "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com";
+            $scriptSrc = "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://code.jquery.com https://cdn.datatables.net";
+            $styleSrc = "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.datatables.net";
             $connectSrc = "connect-src 'self' https:";
 
             if ($isLocalEnvironment) {

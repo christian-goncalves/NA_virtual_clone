@@ -143,8 +143,10 @@ function initMetricsTracking() {
 
         if (navigator.sendBeacon) {
             const blob = new Blob([body], { type: 'application/json' });
-            navigator.sendBeacon(endpoint, blob);
-            return;
+            const queued = navigator.sendBeacon(endpoint, blob);
+            if (queued) {
+                return;
+            }
         }
 
         fetch(endpoint, {
@@ -161,21 +163,42 @@ function initMetricsTracking() {
         });
     };
 
-    document.addEventListener('click', (event) => {
+    const trackFromEvent = (event) => {
         const target = event.target;
         if (!(target instanceof Element)) return;
 
         const clickable = target.closest('[data-metrics-event]');
         if (!(clickable instanceof Element)) return;
 
+        // Avoid duplicate sends when pointerdown + click fire for the same interaction.
+        const nowMs = Date.now();
+        const lastSentMs = Number(clickable.getAttribute('data-metrics-last-sent-at') ?? '0');
+        if (Number.isFinite(lastSentMs) && nowMs - lastSentMs < 700) {
+            return;
+        }
+        clickable.setAttribute('data-metrics-last-sent-at', String(nowMs));
+
+        const eventType = clickable.getAttribute('data-metrics-event') ?? 'category_click';
+        const meetingRowId = clickable.getAttribute('data-metrics-meeting-row-id') ?? null;
+        const meetingSignature = clickable.getAttribute('data-metrics-meeting-signature') ?? null;
+
+        if (eventType === 'category_click' && !meetingRowId) {
+            return;
+        }
+
         sendEvent({
-            event_type: clickable.getAttribute('data-metrics-event') ?? 'category_click',
+            event_type: eventType,
             category: clickable.getAttribute('data-source-section') ?? 'unknown',
             route: clickable.getAttribute('data-metrics-route') ?? window.location.pathname,
             meeting_name: clickable.getAttribute('data-meeting-name') ?? null,
+            meeting_row_id: meetingRowId,
+            meeting_signature: meetingSignature,
             source_section: clickable.getAttribute('data-source-section') ?? null,
         });
-    });
+    };
+
+    document.addEventListener('pointerdown', trackFromEvent, true);
+    document.addEventListener('click', trackFromEvent, true);
 }
 
 function initMeetingShare() {

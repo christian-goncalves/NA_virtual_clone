@@ -126,9 +126,13 @@ class VirtualMeetingControllerTest extends TestCase
                 'upcomingCount' => 0,
                 'runningMeetings' => [[
                     'meeting' => [
+                        'id' => 999,
                         'name' => 'Grupo Snapshot',
                         'meeting_platform' => 'zoom',
                         'meeting_url' => 'https://example.com/join',
+                        'meeting_id' => 'snap-999',
+                        'weekday' => 'segunda',
+                        'start_time' => '12:00:00',
                         'type_label' => 'aberta',
                         'format_labels' => ['aberta'],
                     ],
