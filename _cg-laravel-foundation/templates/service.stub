@@ -1,0 +1,36 @@
+﻿<?php
+
+declare(strict_types=1);
+
+namespace App\Services\{{Domain}};
+
+use Throwable;
+
+final class {{Action}}Service
+{
+    public function __construct(
+        // Exemplo: private readonly {{DependencyContract}} $dependency,
+    ) {}
+
+    /**
+     * @param array<string, mixed> $input
+     * @return array<string, mixed>
+     */
+    public function handle(array $input): array
+    {
+        // 1) Validar pre-condicoes de negocio
+        // 2) Executar fluxo principal
+        // 3) Instrumentar metricas/logs
+        // 4) Retornar payload consistente
+
+        try {
+            return [
+                'ok' => true,
+                'data' => [],
+            ];
+        } catch (Throwable $e) {
+            // Registrar contexto operacional antes de propagar erro
+            throw $e;
+        }
+    }
+}

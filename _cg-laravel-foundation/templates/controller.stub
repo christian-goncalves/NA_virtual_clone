@@ -1,0 +1,26 @@
+﻿<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\{{Domain}};
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\{{Domain}}\{{Action}}Request;
+use App\Services\{{Domain}}\{{Action}}Service;
+use Illuminate\Http\JsonResponse;
+
+final class {{Resource}}Controller extends Controller
+{
+    public function __construct(
+        private readonly {{Action}}Service $service,
+    ) {}
+
+    public function {{method}}({{Action}}Request $request): JsonResponse
+    {
+        $result = $this->service->handle($request->validated());
+
+        return response()->json([
+            'data' => $result,
+        ], {{status_code}});
+    }
+}

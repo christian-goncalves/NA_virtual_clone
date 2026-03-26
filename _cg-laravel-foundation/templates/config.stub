@@ -1,0 +1,17 @@
+﻿<?php
+
+return [
+    'enabled' => env('{{DOMAIN_UPPER}}_ENABLED', true),
+
+    'cache' => [
+        'ttl' => (int) env('{{DOMAIN_UPPER}}_CACHE_TTL', 300),
+    ],
+
+    'timeouts' => [
+        'upstream_ms' => (int) env('{{DOMAIN_UPPER}}_UPSTREAM_TIMEOUT_MS', 1200),
+    ],
+
+    'limits' => [
+        'max_items' => (int) env('{{DOMAIN_UPPER}}_MAX_ITEMS', 100),
+    ],
+];

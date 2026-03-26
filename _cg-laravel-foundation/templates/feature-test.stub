@@ -1,0 +1,23 @@
+﻿<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature\{{Domain}};
+
+use Tests\TestCase;
+
+final class {{Action}}Test extends TestCase
+{
+    public function test_{{action_snake}}_returns_success_response(): void
+    {
+        $response = $this->{{http_method}}('{{route_or_uri}}', [
+            // payload de exemplo
+        ]);
+
+        $response
+            ->assertStatus({{status_code}})
+            ->assertJsonStructure([
+                'data',
+            ]);
+    }
+}
