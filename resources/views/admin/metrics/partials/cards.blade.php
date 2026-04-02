@@ -12,9 +12,8 @@
         <p class="text-2xl font-semibold">{{ (int) ($accessesLastHour ?? 0) }}</p>
     </article>
     <article class="rounded-xl border bg-white p-4 shadow-sm">
-        <p class="text-xs text-slate-500">Reunioes em andamento (agora)</p>
+        <p class="text-xs text-slate-500">Salas abertas</p>
         <p class="text-2xl font-semibold">{{ (int) ($runningNow ?? 0) }}</p>
-        <p class="text-xs text-slate-500">Cliques running (24h): {{ $runningClicks24h }}</p>
     </article>
     <article class="rounded-xl border bg-white p-4 shadow-sm">
         <p class="text-xs text-slate-500">Taxa de sync 24h</p>
