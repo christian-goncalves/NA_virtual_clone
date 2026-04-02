@@ -15,7 +15,7 @@ class MeetingPdfPreviewTest extends TestCase
     {
         config()->set('na_virtual.metrics.admin_emails', ['admin@example.com']);
 
-        $this->get('/admin/metricas/reunioes/preview-pdf')->assertStatus(401);
+        $this->get('/admin/csanovo')->assertStatus(401);
     }
 
     public function test_preview_pdf_blocks_non_admin_user(): void
@@ -24,7 +24,7 @@ class MeetingPdfPreviewTest extends TestCase
         $user = User::factory()->create(['email' => 'viewer@example.com']);
 
         $this->actingAs($user)
-            ->get('/admin/metricas/reunioes/preview-pdf')
+            ->get('/admin/csanovo')
             ->assertStatus(403);
     }
 
@@ -60,9 +60,9 @@ class MeetingPdfPreviewTest extends TestCase
         $user = User::factory()->create(['email' => 'admin@example.com']);
 
         $this->actingAs($user)
-            ->get('/admin/metricas/reunioes/preview-pdf')
+            ->get('/admin/csanovo')
             ->assertOk()
-            ->assertSeeText('Voltar para analise')
+            ->assertSeeText('Voltar para o dashboard')
             ->assertSeeText('GRUPO')
             ->assertSeeText('LINK')
             ->assertSeeText('2ª')
@@ -81,6 +81,8 @@ class MeetingPdfPreviewTest extends TestCase
             ->assertDontSee('>E<', false)
             ->assertDontSee('>A<', false)
             ->assertSee('href="https://example.org/bomdia"', false)
-            ->assertDontSee('href="'.route('admin.metrics.meetings.export.pdf').'"', false);
+            ->assertDontSee('href="'.route('admin.metrics.meetings.export.pdf').'"', false)
+            ->assertSee('href="'.route('admin.metrics.index').'"', false);
     }
 }
+

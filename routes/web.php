@@ -22,7 +22,7 @@ Route::middleware(['auth.basic', 'is_admin', 'harden.metrics.admin'])->group(fun
     Route::get('/admin/metricas/reunioes', [MetricsDashboardController::class, 'meetingAnalysis'])
         ->name('admin.metrics.meetings.index');
 
-    Route::get('/admin/metricas/reunioes/preview-pdf', MeetingPdfPreviewController::class)
+    Route::get('/admin/csanovo', MeetingPdfPreviewController::class)
         ->name('admin.metrics.meetings.preview.pdf');
 
     Route::post('/admin/metricas/reunioes/sync-json', MeetingJsonSyncController::class)
