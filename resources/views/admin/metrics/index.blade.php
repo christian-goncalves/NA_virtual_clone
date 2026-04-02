@@ -19,7 +19,10 @@
 
             <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                 <p class="text-sm text-slate-600">A analise detalhada de reunioes foi desacoplada para uma tela dedicada.</p>
-                <a href="{{ route('admin.metrics.meetings.index') }}" class="mt-3 inline-flex rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white">Abrir analise de reunioes</a>
+                                <div class="mt-3 flex flex-wrap items-center gap-2">
+                    <a href="{{ route('admin.metrics.meetings.index') }}" class="inline-flex rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white">Abrir analise de reunioes</a>
+                    <a href="{{ route('admin.metrics.meetings.preview.pdf') }}" class="inline-flex rounded border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50">CSA Novo</a>
+                </div>
             </div>
         </header>
 
@@ -34,6 +37,7 @@
     <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 </body>
 </html>
+
 
 
 

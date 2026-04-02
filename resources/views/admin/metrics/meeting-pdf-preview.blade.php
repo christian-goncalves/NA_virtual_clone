@@ -123,7 +123,7 @@
 <body class="bg-slate-100 text-slate-900">
     <main class="mx-auto max-w-full space-y-4 px-4 py-6 sm:px-6 lg:px-8">
         <header class="space-y-2">
-            <a href="{{ route('admin.metrics.meetings.index') }}" class="inline-flex rounded border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700">Voltar para analise</a>
+            <a href="{{ route('admin.metrics.index') }}" class="inline-flex rounded border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700">Voltar para o dashboard</a>
         </header>
 
         <section class="pdf-preview-page">
@@ -155,6 +155,7 @@
     </main>
 </body>
 </html>
+
 
 
 

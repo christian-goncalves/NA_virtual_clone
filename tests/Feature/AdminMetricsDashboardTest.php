@@ -90,7 +90,9 @@ class AdminMetricsDashboardTest extends TestCase
             ->assertSeeText('Top rotas lentas')
             ->assertSeeText('Ultimas sincronizacoes')
             ->assertSeeText('Abrir analise de reunioes')
+            ->assertSeeText('CSA Novo')
             ->assertSee('href="'.route('admin.metrics.meetings.index').'"', false)
+            ->assertSee('href="'.route('admin.metrics.meetings.preview.pdf').'"', false)
             ->assertDontSee('id="meeting-analysis-datatable"', false);
     }
 
@@ -117,12 +119,12 @@ class AdminMetricsDashboardTest extends TestCase
             ->assertSee('data-click-block="running"', false)
             ->assertSee('data-click-block="starting_soon"', false)
             ->assertSee('data-click-block="upcoming"', false)
-            ->assertSeeText('Atualizar JSON da Planilha')
-            ->assertSeeText('Pré-visualizar PDF')
-            ->assertSeeText('Exportar PDF')
-            ->assertSee('action="'.route('admin.metrics.meetings.sync.json').'"', false)
-            ->assertSee('href="'.route('admin.metrics.meetings.preview.pdf').'"', false)
-            ->assertSee('href="'.route('admin.metrics.meetings.export.pdf').'"', false)
+            ->assertDontSeeText('Atualizar JSON da Planilha')
+            ->assertDontSeeText('Pré-visualizar PDF')
+            ->assertDontSeeText('Exportar PDF')
+            ->assertDontSee('action="'.route('admin.metrics.meetings.sync.json').'"', false)
+            ->assertDontSee('href="'.route('admin.metrics.meetings.preview.pdf').'"', false)
+            ->assertDontSee('href="'.route('admin.metrics.meetings.export.pdf').'"', false)
             ->assertDontSee('id="meeting-analysis-presets"', false)
             ->assertDontSee('id="meeting-analysis-guided-suggestions"', false);
     }
@@ -160,4 +162,3 @@ class AdminMetricsDashboardTest extends TestCase
             ->assertSeeText('ambiguous_match=1');
     }
 }
-
