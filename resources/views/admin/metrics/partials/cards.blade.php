@@ -1,4 +1,8 @@
 <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
+    @php
+        $runningClicks24h = (int) collect($categoryClicks ?? [])->firstWhere('category', 'running')['total'] ?? 0;
+    @endphp
+
     <article class="rounded-xl border bg-white p-4 shadow-sm">
         <p class="text-xs text-slate-500">Acessos hoje</p>
         <p class="text-2xl font-semibold">{{ (int) ($accessesToday ?? 0) }}</p>
@@ -8,8 +12,9 @@
         <p class="text-2xl font-semibold">{{ (int) ($accessesLastHour ?? 0) }}</p>
     </article>
     <article class="rounded-xl border bg-white p-4 shadow-sm">
-        <p class="text-xs text-slate-500">Em andamento</p>
+        <p class="text-xs text-slate-500">Reunioes em andamento (agora)</p>
         <p class="text-2xl font-semibold">{{ (int) ($runningNow ?? 0) }}</p>
+        <p class="text-xs text-slate-500">Cliques running (24h): {{ $runningClicks24h }}</p>
     </article>
     <article class="rounded-xl border bg-white p-4 shadow-sm">
         <p class="text-xs text-slate-500">Taxa de sync 24h</p>
@@ -26,3 +31,4 @@
         <p class="text-xs text-slate-500">{{ data_get($lastSyncRun, 'started_at', '-') }}</p>
     </article>
 </section>
+

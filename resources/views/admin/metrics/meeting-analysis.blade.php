@@ -17,7 +17,47 @@
                 <h1 class="text-2xl font-bold">Analise de Reunioes</h1>
                 <p class="text-sm text-slate-600">Secao dedicada para filtros, paginacao e exportacao da lista de reunioes.</p>
             </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <form method="POST" action="{{ route('admin.metrics.meetings.sync.json') }}">
+                    @csrf
+                    <button type="submit" class="inline-flex rounded border border-emerald-200 bg-white px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50">Atualizar JSON da Planilha</button>
+                </form>
+                <a href="{{ route('admin.metrics.meetings.preview.pdf') }}" class="inline-flex rounded border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50">Pré-visualizar PDF</a>
+                <a href="{{ route('admin.metrics.meetings.export.pdf') }}" class="inline-flex rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white">Exportar PDF</a>
+            </div>
         </header>
+
+        @if (session('meeting_json_sync_success'))
+            <div class="rounded border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                {{ session('meeting_json_sync_success') }}
+            </div>
+        @endif
+
+        @if (session('meeting_pdf_error'))
+            <div class="rounded border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                {{ session('meeting_pdf_error') }}
+            </div>
+        @endif
+
+        @if (isset($curatedExportSummary) && is_array($curatedExportSummary))
+            <section class="rounded border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+                <h2 class="text-sm font-semibold text-slate-900">Resumo da ultima exportacao de PDF</h2>
+                <div class="mt-2 grid gap-2 md:grid-cols-4">
+                    <div><span class="font-semibold">Lidas na planilha:</span> {{ (int) data_get($curatedExportSummary, 'total_sheet_rows', 0) }}</div>
+                    <div><span class="font-semibold">Grupos validos (nome):</span> {{ (int) data_get($curatedExportSummary, 'total_sheet_valid_pairs', 0) }}</div>
+                    <div><span class="font-semibold">Resolvidas na base:</span> {{ (int) data_get($curatedExportSummary, 'resolved_count', 0) }}</div>
+                    <div><span class="font-semibold">Conflitos:</span> {{ (int) data_get($curatedExportSummary, 'conflicts_count', 0) }}</div>
+                </div>
+                @if ((int) data_get($curatedExportSummary, 'conflicts_count', 0) > 0)
+                    <p class="mt-2 text-xs text-amber-700">
+                        PDF gerado parcialmente. Conflitos por motivo:
+                        id_not_found={{ (int) data_get($curatedExportSummary, 'conflicts_by_reason.id_not_found', 0) }},
+                        name_mismatch={{ (int) data_get($curatedExportSummary, 'conflicts_by_reason.name_mismatch', 0) }},
+                        ambiguous_match={{ (int) data_get($curatedExportSummary, 'conflicts_by_reason.ambiguous_match', 0) }}.
+                    </p>
+                @endif
+            </section>
+        @endif
 
         @include('admin.metrics.partials.meeting-analysis-table')
     </main>

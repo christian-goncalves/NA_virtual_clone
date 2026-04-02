@@ -1,0 +1,1217 @@
+[
+    {
+        "meeting_id":  "3896629586",
+        "group_name":  "Largo do Machado",
+        "link_url":  "https://us02web.zoom.us/j/3896629586",
+        "schedule":  {
+                         "segunda":  [
+                                         {
+                                             "start":  "10:00",
+                                             "end":  "12:00",
+                                             "format":  "F",
+                                             "format_description":  "Fechada",
+                                             "format_badge_class":  "pdf-badge-type-closed"
+                                         },
+                                         {
+                                             "start":  "17:30",
+                                             "end":  "19:30",
+                                             "format":  "F",
+                                             "format_description":  "Fechada",
+                                             "format_badge_class":  "pdf-badge-type-closed"
+                                         }
+                                     ],
+                         "terca":  [
+                                       {
+                                           "start":  "10:00",
+                                           "end":  "12:00",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       },
+                                       {
+                                           "start":  "17:30",
+                                           "end":  "19:30",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       }
+                                   ],
+                         "quarta":  [
+                                        {
+                                            "start":  "10:00",
+                                            "end":  "12:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        },
+                                        {
+                                            "start":  "17:30",
+                                            "end":  "19:30",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "quinta":  [
+                                        {
+                                            "start":  "10:00",
+                                            "end":  "12:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        },
+                                        {
+                                            "start":  "17:30",
+                                            "end":  "19:30",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "sexta":  [
+                                       {
+                                           "start":  "10:00",
+                                           "end":  "12:00",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       },
+                                       {
+                                           "start":  "17:30",
+                                           "end":  "19:30",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       }
+                                   ],
+                         "sabado":  [
+                                        {
+                                            "start":  "10:00",
+                                            "end":  "12:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        },
+                                        {
+                                            "start":  "17:30",
+                                            "end":  "19:30",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "domingo":  [
+                                         {
+                                             "start":  "10:00",
+                                             "end":  "12:00",
+                                             "format":  "A",
+                                             "format_description":  "Aberta",
+                                             "format_badge_class":  "pdf-badge-type-open"
+                                         }
+                                     ]
+                     }
+    },
+    {
+        "meeting_id":  "4150942864",
+        "group_name":  "Novo Amanhecer Virtual",
+        "link_url":  "https://us02web.zoom.us/j/4150942864",
+        "schedule":  {
+                         "segunda":  [
+                                         {
+                                             "start":  "07:00",
+                                             "end":  "09:00",
+                                             "format":  "A",
+                                             "format_description":  "Aberta",
+                                             "format_badge_class":  "pdf-badge-type-open"
+                                         }
+                                     ],
+                         "terca":  [
+                                       {
+                                           "start":  "07:00",
+                                           "end":  "09:00",
+                                           "format":  "A",
+                                           "format_description":  "Aberta",
+                                           "format_badge_class":  "pdf-badge-type-open"
+                                       }
+                                   ],
+                         "quarta":  [
+                                        {
+                                            "start":  "07:00",
+                                            "end":  "09:00",
+                                            "format":  "E",
+                                            "format_description":  "Estudo",
+                                            "format_badge_class":  "pdf-badge-type-study"
+                                        }
+                                    ],
+                         "quinta":  [
+                                        {
+                                            "start":  "07:00",
+                                            "end":  "09:00",
+                                            "format":  "E",
+                                            "format_description":  "Estudo",
+                                            "format_badge_class":  "pdf-badge-type-study"
+                                        }
+                                    ],
+                         "sexta":  [
+                                       {
+                                           "start":  "07:00",
+                                           "end":  "09:00",
+                                           "format":  "E",
+                                           "format_description":  "Estudo",
+                                           "format_badge_class":  "pdf-badge-type-study"
+                                       }
+                                   ],
+                         "sabado":  [
+                                        {
+                                            "start":  "07:00",
+                                            "end":  "09:00",
+                                            "format":  "E",
+                                            "format_description":  "Estudo",
+                                            "format_badge_class":  "pdf-badge-type-study"
+                                        }
+                                    ],
+                         "domingo":  [
+                                         {
+                                             "start":  "07:00",
+                                             "end":  "09:00",
+                                             "format":  "A",
+                                             "format_description":  "Aberta",
+                                             "format_badge_class":  "pdf-badge-type-open"
+                                         }
+                                     ]
+                     }
+    },
+    {
+        "meeting_id":  "4430251323",
+        "group_name":  "Quinta Tradição",
+        "link_url":  "https://us02web.zoom.us/j/4430251323",
+        "schedule":  {
+                         "segunda":  [
+                                         {
+                                             "start":  "22:00",
+                                             "end":  "23:30",
+                                             "format":  "F",
+                                             "format_description":  "Fechada",
+                                             "format_badge_class":  "pdf-badge-type-closed"
+                                         }
+                                     ],
+                         "terca":  [
+
+                                   ],
+                         "quarta":  [
+
+                                    ],
+                         "quinta":  [
+                                        {
+                                            "start":  "22:00",
+                                            "end":  "23:30",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "sexta":  [
+                                       {
+                                           "start":  "22:00",
+                                           "end":  "00:00",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       }
+                                   ],
+                         "sabado":  [
+
+                                    ],
+                         "domingo":  [
+
+                                     ]
+                     }
+    },
+    {
+        "meeting_id":  "4778010224",
+        "group_name":  "Unidade",
+        "link_url":  "https://us06web.zoom.us/j/4778010224?pwd=jDHaWTGVGvJtAshIN1N53KN4ibmbdm.1",
+        "schedule":  {
+                         "segunda":  [
+                                         {
+                                             "start":  "19:30",
+                                             "end":  "21:00",
+                                             "format":  "F",
+                                             "format_description":  "Fechada",
+                                             "format_badge_class":  "pdf-badge-type-closed"
+                                         }
+                                     ],
+                         "terca":  [
+                                       {
+                                           "start":  "19:30",
+                                           "end":  "21:00",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       }
+                                   ],
+                         "quarta":  [
+                                        {
+                                            "start":  "19:30",
+                                            "end":  "21:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "quinta":  [
+                                        {
+                                            "start":  "19:30",
+                                            "end":  "21:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "sexta":  [
+                                       {
+                                           "start":  "19:30",
+                                           "end":  "21:00",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       }
+                                   ],
+                         "sabado":  [
+                                        {
+                                            "start":  "19:30",
+                                            "end":  "21:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "domingo":  [
+
+                                     ]
+                     }
+    },
+    {
+        "meeting_id":  "4430251323",
+        "group_name":  "Só por elas",
+        "link_url":  "https://us02web.zoom.us/j/4430251323?pwd=SkRGbTAzL2g1ZGU2VU92TGZ1ZmRqQT09",
+        "schedule":  {
+                         "segunda":  [
+                                         {
+                                             "start":  "20:00",
+                                             "end":  "21:50",
+                                             "format":  "F",
+                                             "format_description":  "Fechada",
+                                             "format_badge_class":  "pdf-badge-type-closed"
+                                         }
+                                     ],
+                         "terca":  [
+                                       {
+                                           "start":  "20:00",
+                                           "end":  "21:50",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       }
+                                   ],
+                         "quarta":  [
+                                        {
+                                            "start":  "20:00",
+                                            "end":  "21:50",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "quinta":  [
+                                        {
+                                            "start":  "20:00",
+                                            "end":  "21:50",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "sexta":  [
+                                       {
+                                           "start":  "20:00",
+                                           "end":  "21:50",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       }
+                                   ],
+                         "sabado":  [
+                                        {
+                                            "start":  "20:00",
+                                            "end":  "21:50",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "domingo":  [
+                                         {
+                                             "start":  "20:00",
+                                             "end":  "21:50",
+                                             "format":  "F",
+                                             "format_description":  "Fechada",
+                                             "format_badge_class":  "pdf-badge-type-closed"
+                                         }
+                                     ]
+                     }
+    },
+    {
+        "meeting_id":  "4771627943",
+        "group_name":  "Prece e meditação",
+        "link_url":  "https://us06web.zoom.us/j/4771627943?pwd=TNq8Qn9ZZlmW4Q7HOfXYAgpXaVb39y.1",
+        "schedule":  {
+                         "segunda":  [
+
+                                     ],
+                         "terca":  [
+
+                                   ],
+                         "quarta":  [
+                                        {
+                                            "start":  "19:00",
+                                            "end":  "21:00",
+                                            "format":  "E",
+                                            "format_description":  "Estudo",
+                                            "format_badge_class":  "pdf-badge-type-study"
+                                        }
+                                    ],
+                         "quinta":  [
+
+                                    ],
+                         "sexta":  [
+
+                                   ],
+                         "sabado":  [
+                                        {
+                                            "start":  "10:00",
+                                            "end":  "12:00",
+                                            "format":  "E",
+                                            "format_description":  "Estudo",
+                                            "format_badge_class":  "pdf-badge-type-study"
+                                        }
+                                    ],
+                         "domingo":  [
+
+                                     ]
+                     }
+    },
+    {
+        "meeting_id":  "6592297438",
+        "group_name":  "Mundo Sem Fronteiras",
+        "link_url":  "https://zoom.us/j/6592297438?pwd=K1VZWllxWGkyS2d6SkVGeVJIMjBoUT09",
+        "schedule":  {
+                         "segunda":  [
+                                         {
+                                             "start":  "21:00",
+                                             "end":  "23:00",
+                                             "format":  "F",
+                                             "format_description":  "Fechada",
+                                             "format_badge_class":  "pdf-badge-type-closed"
+                                         }
+                                     ],
+                         "terca":  [
+                                       {
+                                           "start":  "21:00",
+                                           "end":  "23:00",
+                                           "format":  "E",
+                                           "format_description":  "Estudo",
+                                           "format_badge_class":  "pdf-badge-type-study"
+                                       }
+                                   ],
+                         "quarta":  [
+                                        {
+                                            "start":  "21:00",
+                                            "end":  "23:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "quinta":  [
+                                        {
+                                            "start":  "21:00",
+                                            "end":  "23:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "sexta":  [
+                                       {
+                                           "start":  "21:00",
+                                           "end":  "23:00",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       },
+                                       {
+                                           "start":  "23:59",
+                                           "end":  "01:59",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       }
+                                   ],
+                         "sabado":  [
+                                        {
+                                            "start":  "21:00",
+                                            "end":  "23:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        },
+                                        {
+                                            "start":  "23:59",
+                                            "end":  "01:59",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "domingo":  [
+                                         {
+                                             "start":  "21:00",
+                                             "end":  "23:00",
+                                             "format":  "F",
+                                             "format_description":  "Fechada",
+                                             "format_badge_class":  "pdf-badge-type-closed"
+                                         }
+                                     ]
+                     }
+    },
+    {
+        "meeting_id":  "4430251323",
+        "group_name":  "Bom dia Brasil",
+        "link_url":  "https://us02web.zoom.us/j/4430251323",
+        "schedule":  {
+                         "segunda":  [
+                                         {
+                                             "start":  "09:00",
+                                             "end":  "11:00",
+                                             "format":  "F",
+                                             "format_description":  "Fechada",
+                                             "format_badge_class":  "pdf-badge-type-closed"
+                                         }
+                                     ],
+                         "terca":  [
+                                       {
+                                           "start":  "09:00",
+                                           "end":  "11:00",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       }
+                                   ],
+                         "quarta":  [
+                                        {
+                                            "start":  "09:00",
+                                            "end":  "11:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "quinta":  [
+                                        {
+                                            "start":  "09:00",
+                                            "end":  "11:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "sexta":  [
+                                       {
+                                           "start":  "09:00",
+                                           "end":  "11:00",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       }
+                                   ],
+                         "sabado":  [
+                                        {
+                                            "start":  "09:00",
+                                            "end":  "11:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "domingo":  [
+                                         {
+                                             "start":  "09:00",
+                                             "end":  "11:00",
+                                             "format":  "A",
+                                             "format_description":  "Aberta",
+                                             "format_badge_class":  "pdf-badge-type-open"
+                                         }
+                                     ]
+                     }
+    },
+    {
+        "meeting_id":  "7770001988",
+        "group_name":  "Insônia",
+        "link_url":  "http://zoom.us/j/7770001988",
+        "schedule":  {
+                         "segunda":  [
+                                         {
+                                             "start":  "02:00",
+                                             "end":  "04:00",
+                                             "format":  "F",
+                                             "format_description":  "Fechada",
+                                             "format_badge_class":  "pdf-badge-type-closed"
+                                         }
+                                     ],
+                         "terca":  [
+                                       {
+                                           "start":  "02:00",
+                                           "end":  "04:00",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       }
+                                   ],
+                         "quarta":  [
+                                        {
+                                            "start":  "02:00",
+                                            "end":  "04:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "quinta":  [
+                                        {
+                                            "start":  "02:00",
+                                            "end":  "04:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "sexta":  [
+                                       {
+                                           "start":  "02:00",
+                                           "end":  "04:00",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       }
+                                   ],
+                         "sabado":  [
+                                        {
+                                            "start":  "02:00",
+                                            "end":  "04:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "domingo":  [
+                                         {
+                                             "start":  "02:00",
+                                             "end":  "04:00",
+                                             "format":  "F",
+                                             "format_description":  "Fechada",
+                                             "format_badge_class":  "pdf-badge-type-closed"
+                                         }
+                                     ]
+                     }
+    },
+    {
+        "meeting_id":  "4736603661",
+        "group_name":  "Vila Isabel Virtual de Narcóticos Anônimos",
+        "link_url":  "https://zoom.us/j/4736603661",
+        "schedule":  {
+                         "segunda":  [
+                                         {
+                                             "start":  "19:30",
+                                             "end":  "21:30",
+                                             "format":  "E",
+                                             "format_description":  "Estudo",
+                                             "format_badge_class":  "pdf-badge-type-study"
+                                         }
+                                     ],
+                         "terca":  [
+                                       {
+                                           "start":  "19:30",
+                                           "end":  "21:30",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       }
+                                   ],
+                         "quarta":  [
+                                        {
+                                            "start":  "19:30",
+                                            "end":  "21:30",
+                                            "format":  "E",
+                                            "format_description":  "Estudo",
+                                            "format_badge_class":  "pdf-badge-type-study"
+                                        }
+                                    ],
+                         "quinta":  [
+                                        {
+                                            "start":  "19:30",
+                                            "end":  "21:30",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "sexta":  [
+                                       {
+                                           "start":  "19:30",
+                                           "end":  "21:30",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       }
+                                   ],
+                         "sabado":  [
+                                        {
+                                            "start":  "19:30",
+                                            "end":  "21:30",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "domingo":  [
+                                         {
+                                             "start":  "19:30",
+                                             "end":  "21:30",
+                                             "format":  "F",
+                                             "format_description":  "Fechada",
+                                             "format_badge_class":  "pdf-badge-type-closed"
+                                         }
+                                     ]
+                     }
+    },
+    {
+        "meeting_id":  "2109108110",
+        "group_name":  "Liberdade Virtual de Narcóticos Anônimos",
+        "link_url":  "https://us06web.zoom.us/j/2109108110?pwd=a3VtOTRndm8xVHZENkdQTlNMcnVPZz09",
+        "schedule":  {
+                         "segunda":  [
+                                         {
+                                             "start":  "19:00",
+                                             "end":  "20:30",
+                                             "format":  "F",
+                                             "format_description":  "Fechada",
+                                             "format_badge_class":  "pdf-badge-type-closed"
+                                         },
+                                         {
+                                             "start":  "19:00",
+                                             "end":  "21:00",
+                                             "format":  "F",
+                                             "format_description":  "Fechada",
+                                             "format_badge_class":  "pdf-badge-type-closed"
+                                         }
+                                     ],
+                         "terca":  [
+                                       {
+                                           "start":  "19:00",
+                                           "end":  "21:00",
+                                           "format":  "E",
+                                           "format_description":  "Estudo",
+                                           "format_badge_class":  "pdf-badge-type-study"
+                                       }
+                                   ],
+                         "quarta":  [
+                                        {
+                                            "start":  "19:00",
+                                            "end":  "20:30",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        },
+                                        {
+                                            "start":  "19:00",
+                                            "end":  "21:00",
+                                            "format":  "E",
+                                            "format_description":  "Estudo",
+                                            "format_badge_class":  "pdf-badge-type-study"
+                                        }
+                                    ],
+                         "quinta":  [
+                                        {
+                                            "start":  "19:00",
+                                            "end":  "20:30",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        },
+                                        {
+                                            "start":  "19:00",
+                                            "end":  "21:00",
+                                            "format":  "E",
+                                            "format_description":  "Estudo",
+                                            "format_badge_class":  "pdf-badge-type-study"
+                                        }
+                                    ],
+                         "sexta":  [
+                                       {
+                                           "start":  "19:00",
+                                           "end":  "20:30",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       },
+                                       {
+                                           "start":  "19:00",
+                                           "end":  "21:00",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       }
+                                   ],
+                         "sabado":  [
+                                        {
+                                            "start":  "19:00",
+                                            "end":  "20:30",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        },
+                                        {
+                                            "start":  "19:00",
+                                            "end":  "21:00",
+                                            "format":  "E",
+                                            "format_description":  "Estudo",
+                                            "format_badge_class":  "pdf-badge-type-study"
+                                        }
+                                    ],
+                         "domingo":  [
+                                         {
+                                             "start":  "19:00",
+                                             "end":  "20:30",
+                                             "format":  "F",
+                                             "format_description":  "Fechada",
+                                             "format_badge_class":  "pdf-badge-type-closed"
+                                         },
+                                         {
+                                             "start":  "19:00",
+                                             "end":  "21:00",
+                                             "format":  "E",
+                                             "format_description":  "Estudo",
+                                             "format_badge_class":  "pdf-badge-type-study"
+                                         }
+                                     ]
+                     }
+    },
+    {
+        "meeting_id":  "4150942864",
+        "group_name":  "Recomeço",
+        "link_url":  "https://us02web.zoom.us/j/4150942864",
+        "schedule":  {
+                         "segunda":  [
+                                         {
+                                             "start":  "19:00",
+                                             "end":  "21:00",
+                                             "format":  "A",
+                                             "format_description":  "Aberta",
+                                             "format_badge_class":  "pdf-badge-type-open"
+                                         }
+                                     ],
+                         "terca":  [
+                                       {
+                                           "start":  "19:00",
+                                           "end":  "21:00",
+                                           "format":  "A",
+                                           "format_description":  "Aberta",
+                                           "format_badge_class":  "pdf-badge-type-open"
+                                       }
+                                   ],
+                         "quarta":  [
+                                        {
+                                            "start":  "19:00",
+                                            "end":  "21:00",
+                                            "format":  "A",
+                                            "format_description":  "Aberta",
+                                            "format_badge_class":  "pdf-badge-type-open"
+                                        }
+                                    ],
+                         "quinta":  [
+                                        {
+                                            "start":  "19:00",
+                                            "end":  "21:00",
+                                            "format":  "A",
+                                            "format_description":  "Aberta",
+                                            "format_badge_class":  "pdf-badge-type-open"
+                                        }
+                                    ],
+                         "sexta":  [
+                                       {
+                                           "start":  "19:00",
+                                           "end":  "21:00",
+                                           "format":  "A",
+                                           "format_description":  "Aberta",
+                                           "format_badge_class":  "pdf-badge-type-open"
+                                       }
+                                   ],
+                         "sabado":  [
+                                        {
+                                            "start":  "19:00",
+                                            "end":  "21:00",
+                                            "format":  "A",
+                                            "format_description":  "Aberta",
+                                            "format_badge_class":  "pdf-badge-type-open"
+                                        }
+                                    ],
+                         "domingo":  [
+                                         {
+                                             "start":  "19:00",
+                                             "end":  "21:00",
+                                             "format":  "A",
+                                             "format_description":  "Aberta",
+                                             "format_badge_class":  "pdf-badge-type-open"
+                                         }
+                                     ]
+                     }
+    },
+    {
+        "meeting_id":  "8796589210",
+        "group_name":  "Resiliência",
+        "link_url":  "https://us06web.zoom.us/j/8796589210?pwd=paqApvx5fXKRbCUl74fAyvaw7KqUgO.1",
+        "schedule":  {
+                         "segunda":  [
+                                         {
+                                             "start":  "18:00",
+                                             "end":  "20:00",
+                                             "format":  "F",
+                                             "format_description":  "Fechada",
+                                             "format_badge_class":  "pdf-badge-type-closed"
+                                         }
+                                     ],
+                         "terca":  [
+                                       {
+                                           "start":  "18:00",
+                                           "end":  "20:00",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       }
+                                   ],
+                         "quarta":  [
+                                        {
+                                            "start":  "18:00",
+                                            "end":  "20:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "quinta":  [
+                                        {
+                                            "start":  "18:00",
+                                            "end":  "20:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "sexta":  [
+                                       {
+                                           "start":  "18:00",
+                                           "end":  "20:00",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       },
+                                       {
+                                           "start":  "23:00",
+                                           "end":  "01:00",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       }
+                                   ],
+                         "sabado":  [
+                                        {
+                                            "start":  "18:00",
+                                            "end":  "20:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "domingo":  [
+                                         {
+                                             "start":  "18:00",
+                                             "end":  "20:00",
+                                             "format":  "F",
+                                             "format_description":  "Fechada",
+                                             "format_badge_class":  "pdf-badge-type-closed"
+                                         }
+                                     ]
+                     }
+    },
+    {
+        "meeting_id":  "2203202053",
+        "group_name":  "USL",
+        "link_url":  "https://us06web.zoom.us/j/2203202053?pwd=fOHk17Hlvma7ZuaFQsewReXFKcfGM4.1",
+        "schedule":  {
+                         "segunda":  [
+                                         {
+                                             "start":  "07:00",
+                                             "end":  "09:00",
+                                             "format":  "F",
+                                             "format_description":  "Fechada",
+                                             "format_badge_class":  "pdf-badge-type-closed"
+                                         },
+                                         {
+                                             "start":  "10:00",
+                                             "end":  "12:00",
+                                             "format":  "F",
+                                             "format_description":  "Fechada",
+                                             "format_badge_class":  "pdf-badge-type-closed"
+                                         },
+                                         {
+                                             "start":  "15:00",
+                                             "end":  "17:00",
+                                             "format":  "F",
+                                             "format_description":  "Fechada",
+                                             "format_badge_class":  "pdf-badge-type-closed"
+                                         },
+                                         {
+                                             "start":  "21:30",
+                                             "end":  "23:30",
+                                             "format":  "F",
+                                             "format_description":  "Fechada",
+                                             "format_badge_class":  "pdf-badge-type-closed"
+                                         }
+                                     ],
+                         "terca":  [
+                                       {
+                                           "start":  "10:00",
+                                           "end":  "12:00",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       },
+                                       {
+                                           "start":  "15:00",
+                                           "end":  "17:00",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       },
+                                       {
+                                           "start":  "21:30",
+                                           "end":  "23:30",
+                                           "format":  "E",
+                                           "format_description":  "Estudo",
+                                           "format_badge_class":  "pdf-badge-type-study"
+                                       }
+                                   ],
+                         "quarta":  [
+                                        {
+                                            "start":  "07:00",
+                                            "end":  "09:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        },
+                                        {
+                                            "start":  "10:00",
+                                            "end":  "12:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        },
+                                        {
+                                            "start":  "15:00",
+                                            "end":  "17:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        },
+                                        {
+                                            "start":  "21:30",
+                                            "end":  "23:30",
+                                            "format":  "E",
+                                            "format_description":  "Estudo",
+                                            "format_badge_class":  "pdf-badge-type-study"
+                                        }
+                                    ],
+                         "quinta":  [
+                                        {
+                                            "start":  "07:00",
+                                            "end":  "09:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        },
+                                        {
+                                            "start":  "10:00",
+                                            "end":  "12:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        },
+                                        {
+                                            "start":  "15:00",
+                                            "end":  "17:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        },
+                                        {
+                                            "start":  "21:30",
+                                            "end":  "23:30",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "sexta":  [
+                                       {
+                                           "start":  "10:00",
+                                           "end":  "12:00",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       },
+                                       {
+                                           "start":  "15:00",
+                                           "end":  "17:00",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       },
+                                       {
+                                           "start":  "21:30",
+                                           "end":  "23:30",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       }
+                                   ],
+                         "sabado":  [
+                                        {
+                                            "start":  "07:00",
+                                            "end":  "09:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        },
+                                        {
+                                            "start":  "10:00",
+                                            "end":  "12:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        },
+                                        {
+                                            "start":  "15:00",
+                                            "end":  "17:00",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        },
+                                        {
+                                            "start":  "21:30",
+                                            "end":  "23:30",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "domingo":  [
+                                         {
+                                             "start":  "10:00",
+                                             "end":  "12:00",
+                                             "format":  "F",
+                                             "format_description":  "Fechada",
+                                             "format_badge_class":  "pdf-badge-type-closed"
+                                         },
+                                         {
+                                             "start":  "18:00",
+                                             "end":  "20:00",
+                                             "format":  "A",
+                                             "format_description":  "Aberta",
+                                             "format_badge_class":  "pdf-badge-type-open"
+                                         },
+                                         {
+                                             "start":  "21:30",
+                                             "end":  "23:30",
+                                             "format":  "F",
+                                             "format_description":  "Fechada",
+                                             "format_badge_class":  "pdf-badge-type-closed"
+                                         }
+                                     ]
+                     }
+    },
+    {
+        "meeting_id":  "4573689331",
+        "group_name":  "Viver limpo On-Line",
+        "link_url":  "https://us02web.zoom.us/j/4573689331?pwd=dWc1WmVVWUtubnVDdE03bzRIVXN2QT09",
+        "schedule":  {
+                         "segunda":  [
+                                         {
+                                             "start":  "07:00",
+                                             "end":  "08:30",
+                                             "format":  "E",
+                                             "format_description":  "Estudo",
+                                             "format_badge_class":  "pdf-badge-type-study"
+                                         }
+                                     ],
+                         "terca":  [
+                                       {
+                                           "start":  "07:00",
+                                           "end":  "08:30",
+                                           "format":  "F",
+                                           "format_description":  "Fechada",
+                                           "format_badge_class":  "pdf-badge-type-closed"
+                                       }
+                                   ],
+                         "quarta":  [
+                                        {
+                                            "start":  "07:00",
+                                            "end":  "08:30",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "quinta":  [
+                                        {
+                                            "start":  "07:00",
+                                            "end":  "08:30",
+                                            "format":  "E",
+                                            "format_description":  "Estudo",
+                                            "format_badge_class":  "pdf-badge-type-study"
+                                        }
+                                    ],
+                         "sexta":  [
+                                       {
+                                           "start":  "07:00",
+                                           "end":  "08:30",
+                                           "format":  "A",
+                                           "format_description":  "Aberta",
+                                           "format_badge_class":  "pdf-badge-type-open"
+                                       }
+                                   ],
+                         "sabado":  [
+                                        {
+                                            "start":  "15:00",
+                                            "end":  "16:30",
+                                            "format":  "F",
+                                            "format_description":  "Fechada",
+                                            "format_badge_class":  "pdf-badge-type-closed"
+                                        }
+                                    ],
+                         "domingo":  [
+
+                                     ]
+                     }
+    }
+]

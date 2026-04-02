@@ -67,11 +67,22 @@ class NaVirtualMeetingMetricsService
 
     private function runningNow(): int
     {
-        if (! $this->tableExists('metric_meeting_snapshots')) {
-            return 0;
-        }
+        try {
+            return $this->liveRunningNow();
+        } catch (\Throwable) {
+            if (! $this->tableExists('metric_meeting_snapshots')) {
+                return 0;
+            }
 
-        return (int) MetricMeetingSnapshot::query()->latest('measured_at')->value('in_progress_count');
+            return (int) MetricMeetingSnapshot::query()->latest('measured_at')->value('in_progress_count');
+        }
+    }
+
+    private function liveRunningNow(): int
+    {
+        $dataset = app(NaVirtualMeetingGroupingService::class)->buildHomePageData();
+
+        return (int) data_get($dataset, 'runningCount', 0);
     }
 
     /**
@@ -401,3 +412,5 @@ class NaVirtualMeetingMetricsService
         return Schema::hasTable($table);
     }
 }
+
+

@@ -9,6 +9,7 @@ use App\Models\MetricSyncRun;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class AdminMetricsDashboardTest extends TestCase
@@ -116,7 +117,47 @@ class AdminMetricsDashboardTest extends TestCase
             ->assertSee('data-click-block="running"', false)
             ->assertSee('data-click-block="starting_soon"', false)
             ->assertSee('data-click-block="upcoming"', false)
+            ->assertSeeText('Atualizar JSON da Planilha')
+            ->assertSeeText('Pré-visualizar PDF')
+            ->assertSeeText('Exportar PDF')
+            ->assertSee('action="'.route('admin.metrics.meetings.sync.json').'"', false)
+            ->assertSee('href="'.route('admin.metrics.meetings.preview.pdf').'"', false)
+            ->assertSee('href="'.route('admin.metrics.meetings.export.pdf').'"', false)
             ->assertDontSee('id="meeting-analysis-presets"', false)
             ->assertDontSee('id="meeting-analysis-guided-suggestions"', false);
     }
+
+    public function test_meeting_analysis_page_shows_last_export_summary_when_available(): void
+    {
+        config()->set('na_virtual.metrics.admin_emails', ['admin@example.com']);
+
+        Cache::put(
+            (string) config('na_virtual.curated_groups.export_summary_cache_key'),
+            [
+                'total_sheet_rows' => 15,
+                'total_sheet_valid_pairs' => 14,
+                'resolved_count' => 12,
+                'conflicts_count' => 2,
+                'conflicts_by_reason' => [
+                    'id_not_found' => 0,
+                    'name_mismatch' => 1,
+                    'ambiguous_match' => 1,
+                ],
+            ],
+            now()->addMinutes(10)
+        );
+
+        $user = User::factory()->create(['email' => 'admin@example.com']);
+
+        $this->actingAs($user)
+            ->get('/admin/metricas/reunioes')
+            ->assertOk()
+            ->assertSeeText('Resumo da ultima exportacao de PDF')
+            ->assertSeeText('Lidas na planilha: 15')
+            ->assertSeeText('Grupos validos (nome): 14')
+            ->assertSeeText('Resolvidas na base: 12')
+            ->assertSeeText('Conflitos: 2')
+            ->assertSeeText('ambiguous_match=1');
+    }
 }
+

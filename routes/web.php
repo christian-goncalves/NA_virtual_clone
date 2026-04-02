@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\Admin\MetricsDashboardController;
+use App\Http\Controllers\Admin\MeetingJsonSyncController;
+use App\Http\Controllers\Admin\MeetingPdfExportController;
+use App\Http\Controllers\Admin\MeetingPdfPreviewController;
 use App\Http\Controllers\VirtualMeetingController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,5 +21,13 @@ Route::middleware(['auth.basic', 'is_admin', 'harden.metrics.admin'])->group(fun
 
     Route::get('/admin/metricas/reunioes', [MetricsDashboardController::class, 'meetingAnalysis'])
         ->name('admin.metrics.meetings.index');
-});
 
+    Route::get('/admin/metricas/reunioes/preview-pdf', MeetingPdfPreviewController::class)
+        ->name('admin.metrics.meetings.preview.pdf');
+
+    Route::post('/admin/metricas/reunioes/sync-json', MeetingJsonSyncController::class)
+        ->name('admin.metrics.meetings.sync.json');
+
+    Route::get('/admin/metricas/reunioes/export.pdf', MeetingPdfExportController::class)
+        ->name('admin.metrics.meetings.export.pdf');
+});

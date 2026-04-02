@@ -1,6 +1,16 @@
 <?php
 
 return [
+    'curated_groups' => [
+        'json_path' => env('NA_VIRTUAL_CURATED_JSON_PATH', resource_path('data/curated-meeting-groups.json')),
+        'sheets' => [
+            'spreadsheet_id' => env('NA_VIRTUAL_CURATED_SHEET_ID', '152CIT4qM6IN62r02ELs_6erJM2WAsOiPlggB9bwCEfY'),
+            'gid' => env('NA_VIRTUAL_CURATED_SHEET_GID', '0'),
+        ],
+        'export_summary_cache_key' => env('NA_VIRTUAL_CURATED_EXPORT_SUMMARY_CACHE_KEY', 'na.virtual.curated_groups.last_export_summary'),
+        'export_summary_ttl_minutes' => (int) env('NA_VIRTUAL_CURATED_EXPORT_SUMMARY_TTL_MINUTES', 180),
+    ],
+
     'homepage_cache' => [
         'key' => env('NA_VIRTUAL_HOMEPAGE_CACHE_KEY', 'na.virtual.homepage'),
         'ttl_seconds' => (int) env('NA_VIRTUAL_HOMEPAGE_CACHE_TTL_SECONDS', 120),
@@ -50,6 +60,8 @@ return [
     'metrics' => [
         'enabled' => (bool) env('NA_VIRTUAL_METRICS_ENABLED', true),
         'dashboard_cache_ttl_seconds' => (int) env('NA_VIRTUAL_METRICS_DASHBOARD_CACHE_TTL_SECONDS', 30),
+        'running_now_fallback_to_live' => (bool) env('NA_VIRTUAL_METRICS_RUNNING_NOW_FALLBACK_TO_LIVE', true),
+        'running_now_snapshot_max_age_minutes' => (int) env('NA_VIRTUAL_METRICS_RUNNING_NOW_SNAPSHOT_MAX_AGE_MINUTES', 15),
         'admin_emails' => array_values(array_filter(array_map('trim', explode(',', (string) env('NA_VIRTUAL_METRICS_ADMIN_EMAILS', ''))))),
         'admin' => [
             'ip_allowlist' => array_values(array_filter(array_map('trim', explode(',', (string) env('NA_VIRTUAL_METRICS_ADMIN_IP_ALLOWLIST', ''))))),
@@ -141,4 +153,5 @@ return [
         ],
     ],
 ];
+
 
